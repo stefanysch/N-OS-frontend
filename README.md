@@ -1,16 +1,91 @@
-# React + Vite
+# N-OS Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface web do projeto **N-OS**, desenvolvida em **React**, com foco em produtividade, experiência moderna e integração com a API backend.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📁 Estrutura do Projeto
 
-## React Compiler
+| Pasta | Responsabilidade |
+|---|---|
+| `src/components` | Componentes reutilizáveis |
+| `src/pages` | Telas do sistema |
+| `src/services` | Comunicação com API |
+| `src/assets` | Recursos visuais |
+| `src/styles` | Estilos globais |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🚀 Tecnologias
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- JavaScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+
+---
+
+## ⚙️ Configuração
+
+Instale as dependências do projeto:
+
+```bash
+npm install
+```
+
+---
+
+## Executando o Projeto
+
+`npm run dev` é um comando de terminal, utilizado no VS Code, Prompt, PowerShell ou terminal integrado.
+
+### VS Code
+
+Abra a pasta do frontend e rode no terminal integrado:
+
+```bash
+npm run dev
+```
+
+### Prompt / PowerShell
+
+Navegue até a pasta do frontend e execute:
+
+```bash
+cd N-OS-Frontend
+npm run dev
+```
+
+Após iniciar, acesse no navegador: `http://localhost:5173`
+
+> ⚠️ Certifique-se de que a API backend está em execução para o funcionamento completo do sistema.
+
+---
+
+## 🎨 Diretrizes Adotadas
+
+- Interface moderna e responsiva
+- Componentização reutilizável
+- Integração com backend .NET
+- Código organizado e escalável
+
+---
+
+## ✨ Experiência do Usuário
+
+O sistema oferece um fluxo guiado **(wizard)** para abertura de ordens de serviço, conduzindo o usuário em etapas sequenciais dentro de um modal:
+
+* **Passo 1** — Cadastro do cliente
+* **Passo 2** — Cadastro do veículo vinculado ao cliente
+* **Resultado** — Tela de nova OS já com os dados preenchidos
+
+> Caso o cliente e o veículo já estejam cadastrados, o usuário pode abrir a OS diretamente, sem passar pelo fluxo wizard.
+
+---
+
+## 📬 Contato
+
+Para dúvidas, feedbacks ou informações adicionais sobre o desenvolvimento deste projeto, sinta-se à vontade para entrar em contato:
+
+- stefany@edu.unifil.br
