@@ -21,11 +21,13 @@ function ModalConfirmacao({ dados, onConfirmar, onCancelar, carregando }) {
             Cancelar
           </Button>
           <Button
-            variant={dados.ativo ? 'danger' : 'secondary'}
+               /* variant={dados.ativo ? 'danger' : 'secondary'} */
+            variant='danger'
             onClick={onConfirmar}
-            loading={carregando}
+            loading={carregando} 
           >
-            {dados.ativo ? 'Inativar' : 'Reativar'}
+            Deletar
+            {/*dados.ativo ? 'Inativar' : 'Reativar'*/}
           </Button>
         </div>
       </div>
@@ -49,7 +51,7 @@ export default function PecasPage() {
     setErro(null)
     try {
       const res = await pecaService.listar()
-      setPecas(res.data)
+      setPecas(res.data.filter((p) => p.ativo)) // exibir apenas peças ativas por padrão
     } catch {
       setErro('Falha ao carregar peças. Verifique se o backend está rodando.')
     } finally {
@@ -64,24 +66,34 @@ export default function PecasPage() {
 
   const pedirConfirmacaoStatus = (peca) =>
     setConfirmacao({
-      id:       peca.id,
+      /*id:       peca.id,
       ativo:    peca.ativo,
       mensagem: peca.ativo
-        ? `Deseja inativar "${peca.nome}"?`
-        : `Deseja reativar "${peca.nome}"?`,
+        ? `Deseja inativar? "${peca.nome}"?`
+        : `Deseja reativar "${peca.nome}"?`, */
+      id: peca.id,
+      mensagem: `Deseja deletar "${peca.nome}"?`
     })
 
   const handleAlterarStatus = async () => {
     setAlterandoStatus(true)
+
     try {
-      if (confirmacao.ativo) {
+      /*if (confirmacao.ativo) {
         await pecaService.inativar(confirmacao.id)
       } else {
         await pecaService.reativar(confirmacao.id)
       }
-      await carregar()
+      await carregar()*/
+
+      await pecaService.inativar(confirmacao.id)
+
+      setPecas((lista) =>
+        lista.filter((p) => p.id !== confirmacao.id)
+      )
+
     } catch {
-      alert('Erro ao alterar status.')
+      alert('Erro ao deletar peça.')
     } finally {
       setAlterandoStatus(false)
       setConfirmacao(null)
@@ -94,7 +106,7 @@ export default function PecasPage() {
       <div className="border-b border-[#1e1e1e] px-8 py-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-[0.25em] text-[#e11d48]">
-            N-OS / ESTOQUE
+            N-OS / PEÇAS
           </p>
           <h1 className="text-sm uppercase tracking-widest text-white">// PEÇAS</h1>
         </div>
@@ -122,8 +134,8 @@ export default function PecasPage() {
         {!carregando && !erro && (
           <div className="border border-[#1e1e1e]">
 
-            <div className="grid grid-cols-[80px_1fr_2fr_130px_90px_120px_130px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
-              {['// ID', '// NOME', '// DESCRIÇÃO', '// VALOR', '// QTD', '// STATUS', '// AÇÕES'].map((col) => (
+            <div className="grid grid-cols-[80px_1fr_2fr_130px_90px_120px_100px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
+              {['// ID', '// NOME', '// DESCRIÇÃO', '// VALOR', '// STATUS', '// AÇÕES'].map((col) => (
                 <span key={col} className="text-[10px] uppercase tracking-[0.15em] text-[#444]">
                   {col}
                 </span>
@@ -140,7 +152,7 @@ export default function PecasPage() {
               <div
                 key={peca.id}
                 className={[
-                  'grid grid-cols-[80px_1fr_2fr_130px_90px_120px_130px] items-center px-4 py-3',
+                  'grid grid-cols-[80px_1fr_2fr_130px_90px_120px_100px] items-center px-4 py-3',
                   'transition-colors hover:bg-[#161616]',
                   i !== pecas.length - 1 ? 'border-b border-[#1a1a1a]' : '',
                   !peca.ativo ? 'opacity-40' : '',
@@ -158,10 +170,6 @@ export default function PecasPage() {
 
                 <span className="text-xs text-white">{moeda(peca.valor)}</span>
 
-                <span className={`text-xs ${peca.quantidade <= 0 ? 'text-[#e11d48]' : 'text-white'}`}>
-                  {peca.quantidade} un
-                </span>
-
                 <Badge status={peca.ativo ? 'ativo' : 'inativo'} />
 
                 <div className="flex items-center gap-2">
@@ -175,7 +183,8 @@ export default function PecasPage() {
                     onClick={() => pedirConfirmacaoStatus(peca)}
                     className={peca.ativo ? 'hover:!text-[#e11d48]' : 'hover:!text-emerald-500'}
                   >
-                    {peca.ativo ? 'Inativar' : 'Reativar'}
+                    Deletar
+                    {/*peca.ativo ? 'Inativar' : 'Reativar'} */}
                   </Button>
                 </div>
               </div>
@@ -187,8 +196,8 @@ export default function PecasPage() {
           <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
             <span>{pecas.length} peça(s)</span>
             <span>
-              {pecas.filter((p) => p.ativo).length} ativas /{' '}
-              {pecas.filter((p) => !p.ativo).length} inativas
+              {pecas.filter((p) => p.ativo).length} ativas{' '}
+              {/*{pecas.filter((p) => !p.ativo).length} inativas */}
             </span>
           </div>
         )}

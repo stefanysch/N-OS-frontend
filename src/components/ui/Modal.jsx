@@ -6,7 +6,7 @@
  *     aberto={true}
  *     onFechar={fn}
  *     titulo="// NOVA PEÇA"
- *     subtitulo="N-OS / ESTOQUE"
+ *     subtitulo="Produtos / Peças"
  *     badge="#0001"
  *     size="md"          // sm | md | lg | xl
  *     fecharNoOverlay    // fecha ao clicar fora (padrão: true)

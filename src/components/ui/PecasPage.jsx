@@ -24,33 +24,6 @@ export default function PecasPage() {
           FILTRAR
         </button>
       </section>
-
-      <section className="grid grid-cols-3 gap-4 mt-8">
-        <Card title="ESTOQUE TOTAL" value="1.284" />
-        <Card title="BAIXO ESTOQUE" value="17" danger />
-        <Card title="MOVIMENTOS HOJE" value="42" />
-      </section>
-
-      <section className="mt-8 border border-zinc-800">
-        <table className="w-full text-left">
-          <thead className="border-b border-zinc-800 text-zinc-500 text-sm">
-            <tr>
-              <th className="p-4">Código</th>
-              <th>Nome</th>
-              <th>Categoria</th>
-              <th>Marca</th>
-              <th>Qtd</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <Row code="P001" name="Pastilha de Freio" cat="Freios" brand="Bosch" qtd="12" />
-            <Row code="P002" name="Filtro de Óleo" cat="Motor" brand="Mann" qtd="4" />
-            <Row code="P003" name="Amortecedor Dianteiro" cat="Suspensão" brand="Cofap" qtd="0" />
-          </tbody>
-        </table>
-      </section>
     </div>
   );
 }
@@ -63,24 +36,5 @@ function Card({ title, value, danger }) {
         {value}
       </h2>
     </div>
-  );
-}
-
-function Row({ code, name, cat, brand, qtd }) {
-  const low = Number(qtd) <= 3;
-
-  return (
-    <tr className="border-b border-zinc-900 hover:bg-zinc-950">
-      <td className="p-4 text-zinc-400">{code}</td>
-      <td>{name}</td>
-      <td>{cat}</td>
-      <td>{brand}</td>
-      <td>{qtd}</td>
-      <td>
-        <span className={low ? "text-rose-500" : "text-emerald-400"}>
-          {low ? "CRÍTICO" : "OK"}
-        </span>
-      </td>
-    </tr>
   );
 }

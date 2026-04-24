@@ -5,6 +5,6 @@ export const pecaService = {
   buscarPorId: (id)       => api.get(`/pecas/${id}`),
   criar:       (dados)    => api.post('/pecas', dados),
   atualizar:   (id, dados)=> api.put(`/pecas/${id}`, dados),
-  inativar:    (id)       => api.put(`/pecas/inativar/${id}`),
-  reativar:    (id)       => api.put(`/pecas/reativar/${id}`),
+  inativar:    (id)       => api.patch(`/pecas/inativar/${id}`),
+  reativar:    (id)       => api.patch(`/pecas/reativar/${id}`),
 }

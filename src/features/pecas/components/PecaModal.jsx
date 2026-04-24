@@ -4,7 +4,7 @@ import Input  from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { pecaService } from '../services/pecaService'
 
-const FORM_VAZIO = { nome: '', descricao: '', valor: '', quantidade: '' }
+const FORM_VAZIO = { nome: '', descricao: '', valor: '' /*quantidade: ''*/}
 
 export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
   const [form, setForm]           = useState(FORM_VAZIO)
@@ -19,8 +19,8 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
       setForm({
         nome:       pecaEdicao.nome       ?? '',
         descricao:  pecaEdicao.descricao  ?? '',
-        valor:      pecaEdicao.valor      ?? '',
-        quantidade: pecaEdicao.quantidade ?? '',
+        valor:      pecaEdicao.valor      ?? ''
+        /*quantidade: pecaEdicao.quantidade ?? '', */
       })
     } else {
       setForm(FORM_VAZIO)
@@ -39,7 +39,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
     const e = {}
     if (!form.nome.trim())               e.nome       = 'Nome é obrigatório'
     if (!form.valor || form.valor < 0)   e.valor      = 'Informe um valor válido'
-    if (!form.quantidade || form.quantidade < 0) e.quantidade = 'Informe a quantidade'
+   /*  if (!form.quantidade || form.quantidade < 0) e.quantidade = 'Informe a quantidade' */
     return e
   }
 
@@ -57,8 +57,8 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
     const payload = {
       nome:       form.nome.trim(),
       descricao:  form.descricao.trim(),
-      valor:      parseFloat(form.valor),
-      quantidade: parseInt(form.quantidade),
+      valor:      parseFloat(form.valor)
+      /*quantidade: parseInt(form.quantidade), */
     }
 
     try {
@@ -109,8 +109,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
           onChange={handleChange}
           placeholder="Descrição técnica da peça"
         />
-
-        <div className="grid grid-cols-2 gap-6">
+        <div></div>
           <Input
             label="// VALOR (R$)"
             name="valor"
@@ -123,7 +122,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
             required
             error={erros.valor}
           />
-          <Input
+          {/* <Input
             label="// QUANTIDADE"
             name="quantidade"
             type="number"
@@ -133,8 +132,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
             placeholder="0"
             required
             error={erros.quantidade}
-          />
-        </div>
+          />*/}
 
         {erroGeral && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
