@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import Layout    from '@/components/Layout'
-import PecasPage from '@/features/pecas/pages/PecasPage'
-
+import PecaPage from '@/features/pecas/pages/PecaPage'
+import ServicoPage from '@/features/servicos/pages/ServicoPage'
 // placeholder para rotas ainda não implementadas
 const EmBreve = ({ nome }) => (
   <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 font-mono">
@@ -22,8 +22,8 @@ export const router = createBrowserRouter([
 
       { path: 'clientes',  element: <EmBreve nome="Clientes" /> },
       { path: 'veiculos',  element: <EmBreve nome="Veículos" /> },
-      { path: 'pecas',     element: <PecasPage /> },   
-      { path: 'servicos',  element: <EmBreve nome="Serviços" /> },
+      { path: 'pecas',     element: <PecaPage /> },   
+      { path: 'servicos',  element: <ServicoPage /> },
 
       { path: 'ordens',        element: <EmBreve nome="Ordens de Serviço" /> },
       { path: 'ordens/nova',   element: <EmBreve nome="Nova OS — Wizard" /> },

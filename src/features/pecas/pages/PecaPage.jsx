@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Button    from '@/components/ui/Button'
-import Badge     from '@/components/ui/Badge'
 import PecaModal from '../components/PecaModal'
 import { pecaService } from '../services/pecaService'
 
@@ -35,7 +34,7 @@ function ModalConfirmacao({ dados, onConfirmar, onCancelar, carregando }) {
   )
 }
 
-export default function PecasPage() {
+export default function PecaPage() {
   const [pecas, setPecas]             = useState([])
   const [carregando, setCarregando]   = useState(true)
   const [erro, setErro]               = useState(null)
@@ -45,6 +44,7 @@ export default function PecasPage() {
 
   const [confirmacao, setConfirmacao]         = useState(null)  
   const [alterandoStatus, setAlterandoStatus] = useState(false)
+
 
   const carregar = async () => {
     setCarregando(true)
@@ -58,6 +58,7 @@ export default function PecasPage() {
       setCarregando(false)
     }
   }
+
 
   useEffect(() => { carregar() }, [])
 
@@ -135,7 +136,7 @@ export default function PecasPage() {
           <div className="border border-[#1e1e1e]">
 
             <div className="grid grid-cols-[80px_1fr_2fr_130px_90px_120px_100px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
-              {['// ID', '// NOME', '// DESCRIÇÃO', '// VALOR', '// STATUS', '// AÇÕES'].map((col) => (
+              {['// ID', '// NOME', '// DESCRIÇÃO', '// VALOR', '// AÇÕES'].map((col) => (
                 <span key={col} className="text-[10px] uppercase tracking-[0.15em] text-[#444]">
                   {col}
                 </span>
@@ -152,7 +153,7 @@ export default function PecasPage() {
               <div
                 key={peca.id}
                 className={[
-                  'grid grid-cols-[80px_1fr_2fr_130px_90px_120px_100px] items-center px-4 py-3',
+                  'grid grid-cols-[80px_1fr_2fr_120px_100px_120px_100px] items-center px-4 py-3',
                   'transition-colors hover:bg-[#161616]',
                   i !== pecas.length - 1 ? 'border-b border-[#1a1a1a]' : '',
                   !peca.ativo ? 'opacity-40' : '',
@@ -169,9 +170,9 @@ export default function PecasPage() {
                 </span>
 
                 <span className="text-xs text-white">{moeda(peca.valor)}</span>
-
-                <Badge status={peca.ativo ? 'ativo' : 'inativo'} />
-
+                
+                {/*<Badge status={peca.ativo ? 'ativo' : 'inativo'}/>*/}
+                
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="ghost" onClick={() => abrirEdicao(peca)}>
                     Editar

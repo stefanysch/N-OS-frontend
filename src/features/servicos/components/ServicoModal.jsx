@@ -2,32 +2,30 @@ import { useEffect, useState } from 'react'
 import Modal  from '@/components/ui/Modal'
 import Input  from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { pecaService } from '../services/pecaService'
+import { servicoService } from '../services/servicoService'
 
-const FORM_VAZIO = { nome: '', descricao: '', valor: '' /*quantidade: ''*/}
+const FORM_VAZIO = { nome: '', descricao: '', valor: ''}
 
-export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
+export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucesso }) {
   const [form, setForm]           = useState(FORM_VAZIO)
   const [erros, setErros]         = useState({})
   const [salvando, setSalvando]   = useState(false)
   const [erroGeral, setErroGeral] = useState(null)
 
-  const editando = !!pecaEdicao
+  const editando = !!servicoEdicao
 
   useEffect(() => {
-    if (pecaEdicao) {
+    if (servicoEdicao) {
       setForm({
-        nome:       pecaEdicao.nome       ?? '',
-        descricao:  pecaEdicao.descricao  ?? '',
-        valor:      pecaEdicao.valor      ?? ''
-        /*quantidade: pecaEdicao.quantidade ?? '', */
-      })
+        nome:       servicoEdicao.nome       ?? '',
+        descricao:  servicoEdicao.descricao  ?? '',
+        valor:      servicoEdicao.valor      ?? ''      })
     } else {
       setForm(FORM_VAZIO)
     }
     setErros({})
     setErroGeral(null)
-  }, [pecaEdicao, aberto])
+  }, [servicoEdicao, aberto])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -39,7 +37,6 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
     const e = {}
     if (!form.nome.trim())               e.nome       = 'Nome é obrigatório'
     if (!form.valor || form.valor < 0)   e.valor      = 'Informe um valor válido'
-   /*  if (!form.quantidade || form.quantidade < 0) e.quantidade = 'Informe a quantidade' */
     return e
   }
 
@@ -58,14 +55,13 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
       nome:       form.nome.trim(),
       descricao:  form.descricao.trim(),
       valor:      parseFloat(form.valor)
-      /*quantidade: parseInt(form.quantidade), */
     }
 
     try {
       if (editando) {
-        await pecaService.atualizar(pecaEdicao.id, payload)
+        await servicoService.atualizar(servicoEdicao.id, payload)
       } else {
-        await pecaService.criar(payload)
+        await servicoService.criar(payload)
       }
       onSucesso()
       onFechar()
@@ -73,7 +69,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
       setErroGeral(
         typeof err?.response?.data === 'string'
           ? err.response.data
-          : 'Erro ao salvar peça. Tente novamente.'
+          : 'Erro ao salvar serviço. Tente novamente.'
       )
     } finally {
       setSalvando(false)
@@ -84,9 +80,9 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
     <Modal
       aberto={aberto}
       onFechar={onFechar}
-      titulo={editando ? '// EDITAR PEÇA' : '// NOVA PEÇA'}
+      titulo={editando ? '// EDITAR SERVIÇO' : '// NOVO SERVIÇO'}
       subtitulo="N-OS"
-      badge={editando ? `#${String(pecaEdicao.id).padStart(4, '0')}` : undefined}
+      badge={editando ? `#${String(servicoEdicao.id).padStart(4, '0')}` : undefined}
       size="md"
     >
       <Modal.Body>
@@ -95,7 +91,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
           name="nome"
           value={form.nome}
           onChange={handleChange}
-          placeholder="Ex: Filtro de óleo"
+          placeholder="Ex: Troca de óleo"
           required
           error={erros.nome}
         />
@@ -107,7 +103,7 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
           rows={2}
           value={form.descricao}
           onChange={handleChange}
-          placeholder="Descrição técnica da peça"
+          placeholder="Descrição técnica do procedimento"
         />
         <div></div>
           <Input
@@ -122,17 +118,6 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
             required
             error={erros.valor}
           />
-          {/* <Input
-            label="// QUANTIDADE"
-            name="quantidade"
-            type="number"
-            min="0"
-            value={form.quantidade}
-            onChange={handleChange}
-            placeholder="0"
-            required
-            error={erros.quantidade}
-          />*/}
 
         {erroGeral && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
