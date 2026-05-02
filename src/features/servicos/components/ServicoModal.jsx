@@ -4,7 +4,21 @@ import Input  from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { servicoService } from '../services/servicoService'
 
-const FORM_VAZIO = { nome: '', descricao: '', valor: ''}
+const FORM_VAZIO = { nome: '', descricao: '', valor: '' }
+
+const extrairMensagensErro = (data) => {
+  if (typeof data === 'string') return data
+
+  if (data?.errors) {
+    return Object.values(data.errors)
+      .flat()
+      .join('\n')
+  }
+
+  if (data?.title) return data.title
+
+  return 'Erro ao salvar serviço. Tente novamente.'
+}
 
 export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucesso }) {
   const [form, setForm]           = useState(FORM_VAZIO)
@@ -17,9 +31,10 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
   useEffect(() => {
     if (servicoEdicao) {
       setForm({
-        nome:       servicoEdicao.nome       ?? '',
-        descricao:  servicoEdicao.descricao  ?? '',
-        valor:      servicoEdicao.valor      ?? ''      })
+        nome:      servicoEdicao.nome      ?? '',
+        descricao: servicoEdicao.descricao ?? '',
+        valor:     servicoEdicao.valor     ?? ''
+      })
     } else {
       setForm(FORM_VAZIO)
     }
@@ -35,13 +50,14 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
 
   const validar = () => {
     const e = {}
-    if (!form.nome.trim())               e.nome       = 'Nome é obrigatório'
-    if (!form.valor || form.valor < 0)   e.valor      = 'Informe um valor válido'
+    if (!form.nome.trim())             e.nome  = 'Nome é obrigatório'
+    if (!form.valor || form.valor < 0) e.valor = 'Informe um valor válido'
     return e
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     const errosValidacao = validar()
     if (Object.keys(errosValidacao).length) {
       setErros(errosValidacao)
@@ -52,9 +68,9 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
     setErroGeral(null)
 
     const payload = {
-      nome:       form.nome.trim(),
-      descricao:  form.descricao.trim(),
-      valor:      parseFloat(form.valor)
+      nome:      form.nome.trim(),
+      descricao: form.descricao.trim(),
+      valor:     parseFloat(form.valor)
     }
 
     try {
@@ -66,11 +82,8 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
       onSucesso()
       onFechar()
     } catch (err) {
-      setErroGeral(
-        typeof err?.response?.data === 'string'
-          ? err.response.data
-          : 'Erro ao salvar serviço. Tente novamente.'
-      )
+      const mensagem = extrairMensagensErro(err?.response?.data)
+      setErroGeral(mensagem)
     } finally {
       setSalvando(false)
     }
@@ -95,7 +108,6 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
           required
           error={erros.nome}
         />
-
         <Input
           label="// DESCRIÇÃO"
           name="descricao"
@@ -106,22 +118,24 @@ export default function ServicoModal({ aberto, onFechar, servicoEdicao, onSucess
           placeholder="Descrição técnica do procedimento"
         />
         <div></div>
-          <Input
-            label="// VALOR (R$)"
-            name="valor"
-            type="number"
-            step="0.01"
-            min="0"
-            value={form.valor}
-            onChange={handleChange}
-            placeholder="0,00"
-            required
-            error={erros.valor}
-          />
+        <Input
+          label="// VALOR (R$)"
+          name="valor"
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.valor}
+          onChange={handleChange}
+          placeholder="0,00"
+          required
+          error={erros.valor}
+        />
 
         {erroGeral && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
-            <p className="font-mono text-xs text-[#e11d48]">{erroGeral}</p>
+            {erroGeral.split('\n').map((msg, i) => (
+              <p key={i} className="font-mono text-xs text-[#e11d48]">{msg}</p>
+            ))}
           </div>
         )}
       </Modal.Body>

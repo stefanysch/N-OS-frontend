@@ -6,6 +6,21 @@ import { pecaService } from '../services/pecaService'
 
 const FORM_VAZIO = { nome: '', descricao: '', valor: '' /*quantidade: ''*/}
 
+// Extrai as mensagens de erro da resposta da API (Data Annotations retorna { errors: { campo: ["msg"] } })
+const extrairMensagensErro = (data) => {
+  if (typeof data === 'string') return data
+
+  if (data?.errors) {
+    return Object.values(data.errors)
+      .flat()
+      .join('\n')
+  }
+
+  if (data?.title) return data.title
+
+  return 'Erro ao salvar peça. Tente novamente.'
+}
+
 export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
   const [form, setForm]           = useState(FORM_VAZIO)
   const [erros, setErros]         = useState({})
@@ -70,11 +85,8 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
       onSucesso()
       onFechar()
     } catch (err) {
-      setErroGeral(
-        typeof err?.response?.data === 'string'
-          ? err.response.data
-          : 'Erro ao salvar peça. Tente novamente.'
-      )
+      const mensagem = extrairMensagensErro(err?.response?.data)
+      setErroGeral(mensagem)
     } finally {
       setSalvando(false)
     }
@@ -136,7 +148,9 @@ export default function PecaModal({ aberto, onFechar, pecaEdicao, onSucesso }) {
 
         {erroGeral && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
-            <p className="font-mono text-xs text-[#e11d48]">{erroGeral}</p>
+            {erroGeral.split('\n').map((msg, i) => (
+              <p key={i} className="font-mono text-xs text-[#e11d48]">{msg}</p>
+            ))}
           </div>
         )}
       </Modal.Body>
