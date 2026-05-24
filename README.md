@@ -1,91 +1,133 @@
 # N-OS Frontend
 
-Interface web do projeto **N-OS**, desenvolvida em **React**, com foco em produtividade, experiência moderna e integração com a API backend.
+Interface web do projeto **N-OS**, desenvolvida em **React** com foco em organização modular, escalabilidade e integração com a API backend em .NET.
 
----
+O sistema foi estruturado utilizando separação por funcionalidades (**feature-based structure**), facilitando manutenção, evolução e reutilização de componentes.
+
+
+## 🚀 Tecnologias Utilizadas
+
+* React
+* JavaScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* Axios
+
 
 ## 📁 Estrutura do Projeto
 
-| Pasta | Responsabilidade |
-|---|---|
-| `src/components` | Componentes reutilizáveis |
-| `src/pages` | Telas do sistema |
-| `src/services` | Comunicação com API |
-| `src/assets` | Recursos visuais |
-| `src/styles` | Estilos globais |
+```text
+src/
+├── assets/                # recursos visuais
+├── components/
+│   ├── shared/            # componentes compartilhados
+│   └── ui/                # componentes visuais reutilizáveis
+│
+├── features/
+│   ├── pecas/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   │
+│   └── servicos/
+│       ├── components/
+│       ├── pages/
+│       └── services/
+│
+├── lib/                   # configurações globais (API, helpers)
+├── router/                # configuração de rotas
+├── utils/                 # funções utilitárias
+├── validations/           # regras de validação
+│
+├── App.jsx
+├── main.jsx
+└── index.css
+```
 
----
 
-## 🚀 Tecnologias
+## ⚙️ Configuração do Projeto
 
-- React
-- JavaScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-
----
-
-## ⚙️ Configuração
-
-Instale as dependências do projeto:
+Instale as dependências:
 
 ```bash
 npm install
 ```
 
----
 
-## Executando o Projeto
+## ▶️ Executando o Projeto
 
-`npm run dev` é um comando de terminal, utilizado no VS Code, Prompt, PowerShell ou terminal integrado.
-
-### VS Code
-
-Abra a pasta do frontend e rode no terminal integrado:
+Execute o ambiente de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-### Prompt / PowerShell
+Após iniciar, acesse:
 
-Navegue até a pasta do frontend e execute:
-
-```bash
-cd N-OS-Frontend
-npm run dev
+```text
+http://localhost:5173
 ```
 
-Após iniciar, acesse no navegador: `http://localhost:5173`
+> ⚠️ Certifique-se de que a API backend esteja em execução para funcionamento completo do sistema.
 
-> ⚠️ Certifique-se de que a API backend está em execução para o funcionamento completo do sistema.
 
----
+## 🔌 Integração com Backend
 
-## 🎨 Diretrizes Adotadas
+O frontend consome uma API desenvolvida em:
 
-- Interface moderna e responsiva
-- Componentização reutilizável
-- Integração com backend .NET
-- Código organizado e escalável
+* ASP.NET Core
+* Entity Framework Core
+* PostgreSQL
 
----
+A comunicação HTTP é centralizada através da camada de serviços em:
+
+```text
+src/features/**/services
+```
+
+e da configuração global em:
+
+```text
+src/lib/api.js
+```
+
+
+## ✨ Funcionalidades Atuais
+
+* Cadastro de peças
+* Cadastro de serviços
+* Modal reutilizável de confirmação
+* Validações centralizadas
+* Estrutura preparada para expansão modular
+* Componentização reutilizável
+* Interface responsiva
+
+## 🎨 Diretrizes do Projeto
+
+* Código modular e escalável
+* Separação de responsabilidades
+* Reutilização de componentes
+* Padronização visual
+* Estrutura organizada por domínio
+* Responsividade
+* Facilidade de manutenção
 
 ## ✨ Experiência do Usuário
 
-O sistema oferece um fluxo guiado **(wizard)** para abertura de ordens de serviço, conduzindo o usuário em etapas sequenciais dentro de um modal:
+O sistema contará com um fluxo guiado (**wizard**) para abertura de ordens de serviço.
 
-* **Passo 1** — Cadastro do cliente
-* **Passo 2** — Cadastro do veículo vinculado ao cliente
-* **Resultado** — Tela de nova OS já com os dados preenchidos
+### Fluxo
 
-> Caso o cliente e o veículo já estejam cadastrados, o usuário pode abrir a OS diretamente, sem passar pelo fluxo wizard.
+1. Cadastro do cliente
+2. Cadastro do veículo vinculado
+3. Criação da ordem de serviço com dados preenchidos
 
----
+Caso cliente e veículo já existam, a OS pode ser aberta diretamente.
+
 
 ## 📬 Contato
 
 Para dúvidas, feedbacks ou informações adicionais sobre o desenvolvimento deste projeto, sinta-se à vontade para entrar em contato:
 
-- stefany@edu.unifil.br
+- [stefany@edu.unifil.br](mailto:stefany@edu.unifil.br)
