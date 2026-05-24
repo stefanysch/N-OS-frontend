@@ -1,10 +1,56 @@
 import api from '@/lib/api'
- 
+
+
+
+async function listar() {
+
+  const resposta = await api.get('/servicos')
+
+  return resposta.data
+}
+
+
+
+async function buscarPorId(id) {
+
+  const resposta = await api.get(`/servicos/${id}`)
+
+  return resposta.data
+}
+
+
+
+async function criar(dados) {
+
+  const resposta = await api.post('/servicos', dados)
+
+  return resposta.data
+}
+
+
+
+async function atualizar(id, dados) {
+
+  const resposta = await api.put(`/servicos/${id}`, dados)
+
+  return resposta.data
+}
+
+
+
+async function inativar(id) {
+
+  const resposta = await api.patch(`/servicos/inativar/${id}`)
+
+  return resposta.data
+}
+
+
+
 export const servicoService = {
-  listar:      ()         => api.get('/servicos'),
-  buscarPorId: (id)       => api.get(`/servicos/${id}`),
-  criar:       (dados)    => api.post('/servicos', dados),
-  atualizar:   (id, dados)=> api.put(`/servicos/${id}`, dados),
-  inativar:    (id)       => api.patch(`/servicos/inativar/${id}`),
-  reativar:    (id)       => api.patch(`/servicos/reativar/${id}`),
+  listar,
+  buscarPorId,
+  criar,
+  atualizar,
+  inativar
 }

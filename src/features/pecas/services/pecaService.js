@@ -1,10 +1,56 @@
 import api from '@/lib/api'
- 
+
+
+
+async function listar() {
+
+  const resposta = await api.get('/pecas')
+
+  return resposta.data
+}
+
+
+
+async function buscarPorId(id) {
+
+  const resposta = await api.get(`/pecas/${id}`)
+
+  return resposta.data
+}
+
+
+
+async function criar(dados) {
+
+  const resposta = await api.post('/pecas', dados)
+
+  return resposta.data
+}
+
+
+
+async function atualizar(id, dados) {
+
+  const resposta = await api.put(`/pecas/${id}`, dados)
+
+  return resposta.data
+}
+
+
+
+async function inativar(id) {
+
+  const resposta = await api.patch(`/pecas/inativar/${id}`)
+
+  return resposta.data
+}
+
+
+
 export const pecaService = {
-  listar:      ()         => api.get('/pecas'),
-  buscarPorId: (id)       => api.get(`/pecas/${id}`),
-  criar:       (dados)    => api.post('/pecas', dados),
-  atualizar:   (id, dados)=> api.put(`/pecas/${id}`, dados),
-  inativar:    (id)       => api.patch(`/pecas/inativar/${id}`),
-  reativar:    (id)       => api.patch(`/pecas/reativar/${id}`),
+  listar,
+  buscarPorId,
+  criar,
+  atualizar,
+  inativar
 }
