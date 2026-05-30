@@ -18,10 +18,9 @@ export function validarServico(formulario) {
 }
 
 export function montarPayloadServico(formulario) {
-
   return {
     nome: formulario.nome.trim(),
-    descricao: formulario.descricao.trim(),
+    descricao: formulario.descricao?.trim() || '',
     valor: Number(formulario.valor)
   }
 }
