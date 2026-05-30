@@ -8,15 +8,11 @@ import { pecaService } from '../services/pecaService'
 
 import { validarPeca, montarPayloadPeca } from '@/validations/pecaValidation'
 
-
-
 const FORMULARIO_INICIAL = {
   nome: '',
   descricao: '',
   valor: ''
 }
-
-
 
 function extrairMensagensErro(data) {
 
@@ -37,8 +33,6 @@ function extrairMensagensErro(data) {
   return 'Erro ao salvar peça.'
 }
 
-
-
 export default function PecaModal({
   aberto,
   onFechar,
@@ -57,11 +51,7 @@ export default function PecaModal({
   const [erroGeral, setErroGeral] =
     useState(null)
 
-
-
   const editando = Boolean(pecaEdicao)
-
-
 
   useEffect(() => {
 
@@ -82,7 +72,6 @@ export default function PecaModal({
     setErroGeral(null)
 
   }, [pecaEdicao, aberto, editando])
-
 
 
   function handleAlterarCampo(event) {
