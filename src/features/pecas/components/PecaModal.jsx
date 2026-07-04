@@ -6,16 +6,18 @@ import Button from '@/components/ui/Button'
 
 import { pecaService } from '../services/pecaService'
 
-import { validarPeca, montarPayloadPeca } from '@/validations/pecaValidation'
+import {
+  validarPeca,
+  montarPayloadPeca
+} from '@/validations/pecaValidation'
 
-const FORMULARIO_INICIAL = {
+const FORMULARIO_VAZIO = {
   nome: '',
   descricao: '',
   valor: ''
 }
 
-function extrairMensagensErro(data) {
-
+function obterMensagemErro(data) {
   if (typeof data === 'string') {
     return data
   }
@@ -39,116 +41,93 @@ export default function PecaModal({
   pecaEdicao,
   onSucesso
 }) {
-
   const [formulario, setFormulario] =
-    useState(FORMULARIO_INICIAL)
+    useState(FORMULARIO_VAZIO)
 
-  const [erros, setErros] = useState({})
+  const [erros, setErros] =
+    useState({})
 
   const [salvando, setSalvando] =
     useState(false)
 
-  const [erroGeral, setErroGeral] =
+  const [mensagemErro, setMensagemErro] =
     useState(null)
 
   const editando = Boolean(pecaEdicao)
 
   useEffect(() => {
-
     if (editando) {
-
       setFormulario({
         nome: pecaEdicao.nome ?? '',
         descricao: pecaEdicao.descricao ?? '',
         valor: pecaEdicao.valor ?? ''
       })
-
     } else {
-
-      setFormulario(FORMULARIO_INICIAL)
+      setFormulario(FORMULARIO_VAZIO)
     }
 
     setErros({})
-    setErroGeral(null)
+    setMensagemErro(null)
+  }, [aberto, editando, pecaEdicao])
 
-  }, [pecaEdicao, aberto, editando])
+  function alterarCampo(e) {
+    const { name, value } = e.target
 
-
-  function handleAlterarCampo(event) {
-
-    const { name, value } = event.target
-
-    setFormulario((estadoAnterior) => ({
-      ...estadoAnterior,
+    setFormulario((anterior) => ({
+      ...anterior,
       [name]: value
     }))
 
-    if (erros[name]) {
+    if (!erros[name]) return
 
-      setErros((estadoAnterior) => ({
-        ...estadoAnterior,
-        [name]: null
-      }))
-    }
+    setErros((anterior) => ({
+      ...anterior,
+      [name]: null
+    }))
   }
 
-
-
-  async function handleSalvar(event) {
-
-    event.preventDefault()
+  async function salvar(e) {
+    e.preventDefault()
 
     const errosValidacao =
       validarPeca(formulario)
 
     if (Object.keys(errosValidacao).length > 0) {
-
       setErros(errosValidacao)
-
       return
     }
 
     setSalvando(true)
-
-    setErroGeral(null)
+    setMensagemErro(null)
 
     const payload =
       montarPayloadPeca(formulario)
 
     try {
-
       if (editando) {
-
         await pecaService.atualizar(
           pecaEdicao.id,
           payload
         )
-
       } else {
-
         await pecaService.criar(payload)
       }
 
       onSucesso()
-
       onFechar()
 
     } catch (erro) {
 
-      const mensagemErro =
-        extrairMensagensErro(
+      setMensagemErro(
+        obterMensagemErro(
           erro?.response?.data
         )
-
-      setErroGeral(mensagemErro)
+      )
 
     } finally {
-
       setSalvando(false)
     }
   }
-
-
 
   return (
     <Modal
@@ -167,14 +146,13 @@ export default function PecaModal({
       }
       size="md"
     >
-
       <Modal.Body>
 
         <Input
           label="// NOME"
           name="nome"
           value={formulario.nome}
-          onChange={handleAlterarCampo}
+          onChange={alterarCampo}
           placeholder="Ex: Filtro de óleo"
           required
           error={erros.nome}
@@ -186,7 +164,7 @@ export default function PecaModal({
           as="textarea"
           rows={2}
           value={formulario.descricao}
-          onChange={handleAlterarCampo}
+          onChange={alterarCampo}
           placeholder="Descrição técnica da peça"
           error={erros.descricao}
         />
@@ -198,20 +176,18 @@ export default function PecaModal({
           step="0.01"
           min="0"
           value={formulario.valor}
-          onChange={handleAlterarCampo}
+          onChange={alterarCampo}
           placeholder="0,00"
           required
           error={erros.valor}
         />
 
-        {erroGeral && (
-
+        {mensagemErro && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
 
-            {erroGeral
+            {mensagemErro
               .split('\n')
               .map((mensagem, index) => (
-
                 <p
                   key={index}
                   className="font-mono text-xs text-[#e11d48]"
@@ -219,12 +195,11 @@ export default function PecaModal({
                   {mensagem}
                 </p>
               ))}
+
           </div>
         )}
 
       </Modal.Body>
-
-
 
       <Modal.Footer>
 
@@ -244,7 +219,7 @@ export default function PecaModal({
           }
           type="submit"
           loading={salvando}
-          onClick={handleSalvar}
+          onClick={salvar}
         >
           {editando
             ? 'Salvar alterações'

@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 
 import Button from '@/components/ui/Button'
+import Badge from '@/components/ui/Badge'
+import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import PecaModal from '../components/PecaModal'
-import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import { pecaService } from '../services/pecaService'
 
 import { formatarMoeda } from '@/utils/formatters'
-
-
 
 export default function PecaPage() {
 
@@ -18,128 +17,134 @@ export default function PecaPage() {
   const [carregando, setCarregando] =
     useState(true)
 
-  const [erroCarregamento, setErroCarregamento] =
+  const [erro, setErro] =
     useState(null)
 
-
-
-  const [modalFormularioAberto,
-    setModalFormularioAberto] =
+  const [modalAberto,
+    setModalAberto] =
     useState(false)
 
-  const [pecaEdicao, setPecaEdicao] =
+  const [pecaEdicao,
+    setPecaEdicao] =
     useState(null)
 
-
-
-  const [modalConfirmacao, setModalConfirmacao] =
+  const [confirmacaoStatus,
+    setConfirmacaoStatus] =
     useState(null)
 
-  const [excluindoPeca, setExcluindoPeca] =
+  const [alterandoStatus,
+    setAlterandoStatus] =
     useState(false)
-
-
 
   useEffect(() => {
 
-    carregarPecas()
+    carregar()
 
   }, [])
 
-
-
-  async function carregarPecas() {
+  async function carregar() {
 
     setCarregando(true)
 
-    setErroCarregamento(null)
+    setErro(null)
 
     try {
 
-      const listaPecas =
+      const pecas =
         await pecaService.listar()
 
-      const pecasAtivas =
-        listaPecas.filter(
-          (peca) => peca.ativo
-        )
-
-      setPecas(pecasAtivas)
+      setPecas(
+        Array.isArray(pecas)
+          ? pecas
+          : []
+      )
 
     } catch {
 
-      setErroCarregamento(
+      setErro(
         'Falha ao carregar peças.'
       )
 
     } finally {
 
       setCarregando(false)
+
     }
+
   }
 
-
-
-  function handleAbrirCriacao() {
+  function abrirCriacao() {
 
     setPecaEdicao(null)
 
-    setModalFormularioAberto(true)
+    setModalAberto(true)
+
   }
 
-
-
-  function handleAbrirEdicao(peca) {
+  function abrirEdicao(peca) {
 
     setPecaEdicao(peca)
 
-    setModalFormularioAberto(true)
+    setModalAberto(true)
+
   }
 
+  function abrirConfirmacao(peca) {
 
+    setConfirmacaoStatus({
 
-  function handleAbrirConfirmacao(peca) {
-
-    setModalConfirmacao({
       id: peca.id,
-      mensagem: `Deseja deletar "${peca.nome}"?`
+
+      ativo: peca.ativo,
+
+      mensagem: peca.ativo
+        ? `Deseja inativar "${peca.nome}"?`
+        : `Deseja reativar "${peca.nome}"?`
+
     })
+
   }
 
+  async function confirmarAlteracaoStatus() {
 
-
-  async function handleExcluirPeca() {
-
-    setExcluindoPeca(true)
+    setAlterandoStatus(true)
 
     try {
 
-      await pecaService.inativar(
-        modalConfirmacao.id
-      )
+      if (confirmacaoStatus.ativo) {
 
-      setPecas((listaAtual) =>
-        listaAtual.filter(
-          (peca) =>
-            peca.id !== modalConfirmacao.id
+        await pecaService.inativar(
+          confirmacaoStatus.id
         )
-      )
+
+      } else {
+
+        await pecaService.reativar(
+          confirmacaoStatus.id
+        )
+
+      }
+
+      await carregar()
 
     } catch {
 
-      alert('Erro ao deletar peça.')
+      setErro(
+        'Erro ao alterar status da peça.'
+      )
 
     } finally {
 
-      setExcluindoPeca(false)
+      setAlterandoStatus(false)
 
-      setModalConfirmacao(null)
+      setConfirmacaoStatus(null)
+
     }
+
   }
 
-
-
   return (
+
     <div className="min-h-screen bg-[#0d0d0d] font-mono text-white">
 
       <div className="flex items-center justify-between border-b border-[#1e1e1e] px-8 py-5">
@@ -158,14 +163,12 @@ export default function PecaPage() {
 
         <Button
           variant="secondary"
-          onClick={handleAbrirCriacao}
+          onClick={abrirCriacao}
         >
           + Nova Peça
         </Button>
 
       </div>
-
-
 
       <div className="px-8 py-6">
 
@@ -180,43 +183,44 @@ export default function PecaPage() {
             Carregando...
 
           </div>
+
         )}
 
-
-
-        {erroCarregamento && !carregando && (
+        {erro && !carregando && (
 
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-3">
 
             <p className="font-mono text-xs text-[#e11d48]">
-              {erroCarregamento}
+
+              {erro}
+
             </p>
 
             <Button
               variant="ghost"
               size="sm"
               className="mt-2"
-              onClick={carregarPecas}
+              onClick={carregar}
             >
               Tentar novamente
             </Button>
 
           </div>
+
         )}
 
-
-
-        {!carregando && !erroCarregamento && (
+        {!carregando && !erro && (
 
           <div className="border border-[#1e1e1e]">
 
-            <div className="grid grid-cols-[80px_1fr_2fr_130px_120px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
+            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
 
               {[
                 '// ID',
                 '// NOME',
                 '// DESCRIÇÃO',
                 '// VALOR',
+                '// STATUS',
                 '// AÇÕES'
               ].map((coluna) => (
 
@@ -226,10 +230,10 @@ export default function PecaPage() {
                 >
                   {coluna}
                 </span>
+
               ))}
+
             </div>
-
-
 
             {pecas.length === 0 && (
 
@@ -238,20 +242,22 @@ export default function PecaPage() {
                 Nenhuma peça cadastrada
 
               </div>
+
             )}
 
-
-
-            {pecas.map((peca, index) => (
+            {pecas.map((peca, indice) => (
 
               <div
                 key={peca.id}
                 className={[
-                  'grid grid-cols-[80px_1fr_2fr_120px_120px]',
+                  'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
                   'transition-colors hover:bg-[#161616]',
-                  index !== pecas.length - 1
+                  indice !== pecas.length - 1
                     ? 'border-b border-[#1a1a1a]'
+                    : '',
+                  !peca.ativo
+                    ? 'opacity-40'
                     : ''
                 ].join(' ')}
               >
@@ -262,15 +268,11 @@ export default function PecaPage() {
 
                 </span>
 
-
-
                 <span className="truncate pr-4 text-xs text-white">
 
                   {peca.nome}
 
                 </span>
-
-
 
                 <span className="truncate pr-4 text-xs text-[#555]">
 
@@ -278,24 +280,26 @@ export default function PecaPage() {
 
                 </span>
 
-
-
                 <span className="text-xs text-white">
 
                   {formatarMoeda(peca.valor)}
 
                 </span>
 
-
+                <Badge
+                  status={
+                    peca.ativo
+                      ? 'ativo'
+                      : 'inativo'
+                  }
+                />
 
                 <div className="flex items-center gap-2">
 
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() =>
-                      handleAbrirEdicao(peca)
-                    }
+                    onClick={() => abrirEdicao(peca)}
                   >
                     Editar
                   </Button>
@@ -307,64 +311,91 @@ export default function PecaPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="hover:!text-[#e11d48]"
-                    onClick={() =>
-                      handleAbrirConfirmacao(peca)
+                    className={
+                      peca.ativo
+                        ? 'hover:!text-[#e11d48]'
+                        : 'hover:!text-emerald-500'
                     }
+                    onClick={() => abrirConfirmacao(peca)}
                   >
-                    Deletar
+                    {peca.ativo
+                      ? 'Inativar'
+                      : 'Reativar'}
                   </Button>
 
                 </div>
+
               </div>
+
             ))}
+
           </div>
+
         )}
-
-
 
         {!carregando &&
-          !erroCarregamento &&
+          !erro &&
           pecas.length > 0 && (
 
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
+            <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
 
-            <span>
-              {pecas.length} peça(s)
-            </span>
+              <span>
 
-            <span>
-              {pecas.length} ativas
-            </span>
+                {pecas.length} peça(s)
 
-          </div>
-        )}
+              </span>
+
+              <span>
+
+                {pecas.filter(
+                  (peca) => peca.ativo
+                ).length} ativas
+
+                {' • '}
+
+                {pecas.filter(
+                  (peca) => !peca.ativo
+                ).length} inativas
+
+              </span>
+
+            </div>
+
+          )}
 
       </div>
 
-
-
       <PecaModal
-        aberto={modalFormularioAberto}
+        aberto={modalAberto}
         onFechar={() =>
-          setModalFormularioAberto(false)
+          setModalAberto(false)
         }
         pecaEdicao={pecaEdicao}
-        onSucesso={carregarPecas}
+        onSucesso={carregar}
       />
 
-
-
       <ModalConfirmacao
-        aberto={Boolean(modalConfirmacao)}
-        mensagem={modalConfirmacao?.mensagem}
-        carregando={excluindoPeca}
-        onConfirmar={handleExcluirPeca}
+        aberto={Boolean(confirmacaoStatus)}
+        mensagem={confirmacaoStatus?.mensagem}
+        carregando={alterandoStatus}
+        onConfirmar={confirmarAlteracaoStatus}
         onCancelar={() =>
-          setModalConfirmacao(null)
+          setConfirmacaoStatus(null)
+        }
+        textoBotao={
+          confirmacaoStatus?.ativo
+            ? 'Inativar'
+            : 'Reativar'
+        }
+        varianteBotao={
+          confirmacaoStatus?.ativo
+            ? 'danger'
+            : 'secondary'
         }
       />
 
     </div>
+
   )
+
 }

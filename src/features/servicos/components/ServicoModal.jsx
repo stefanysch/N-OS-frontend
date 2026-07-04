@@ -11,18 +11,13 @@ import {
   montarPayloadServico
 } from '@/validations/servicoValidation'
 
-
-
-const FORMULARIO_INICIAL = {
+const FORMULARIO_VAZIO = {
   nome: '',
   descricao: '',
   valor: ''
 }
 
-
-
-function extrairMensagensErro(data) {
-
+function obterMensagemErro(data) {
   if (typeof data === 'string') {
     return data
   }
@@ -40,17 +35,14 @@ function extrairMensagensErro(data) {
   return 'Erro ao salvar serviço.'
 }
 
-
-
 export default function ServicoModal({
   aberto,
   onFechar,
   servicoEdicao,
   onSucesso
 }) {
-
   const [formulario, setFormulario] =
-    useState(FORMULARIO_INICIAL)
+    useState(FORMULARIO_VAZIO)
 
   const [erros, setErros] =
     useState({})
@@ -58,112 +50,88 @@ export default function ServicoModal({
   const [salvando, setSalvando] =
     useState(false)
 
-  const [erroGeral, setErroGeral] =
+  const [mensagemErro, setMensagemErro] =
     useState(null)
-
-
 
   const editando = Boolean(servicoEdicao)
 
-
-
   useEffect(() => {
-
     if (editando) {
-
       setFormulario({
         nome: servicoEdicao.nome ?? '',
         descricao: servicoEdicao.descricao ?? '',
         valor: servicoEdicao.valor ?? ''
       })
-
     } else {
-
-      setFormulario(FORMULARIO_INICIAL)
+      setFormulario(FORMULARIO_VAZIO)
     }
 
     setErros({})
-    setErroGeral(null)
+    setMensagemErro(null)
+  }, [aberto, servicoEdicao, editando])
 
-  }, [servicoEdicao, aberto, editando])
+  function alterarCampo(evento) {
+    const { name, value } = evento.target
 
-
-
-  function handleAlterarCampo(event) {
-
-    const { name, value } = event.target
-
-    setFormulario((estadoAnterior) => ({
-      ...estadoAnterior,
+    setFormulario((anterior) => ({
+      ...anterior,
       [name]: value
     }))
 
-    if (erros[name]) {
-
-      setErros((estadoAnterior) => ({
-        ...estadoAnterior,
-        [name]: null
-      }))
+    if (!erros[name]) {
+      return
     }
+
+    setErros((anterior) => ({
+      ...anterior,
+      [name]: null
+    }))
   }
 
-
-
-  async function handleSalvar(event) {
-
-    event.preventDefault()
+  async function salvar(evento) {
+    evento.preventDefault()
 
     const errosValidacao =
       validarServico(formulario)
 
     if (Object.keys(errosValidacao).length > 0) {
-
       setErros(errosValidacao)
-
       return
     }
 
     setSalvando(true)
-
-    setErroGeral(null)
+    setMensagemErro(null)
 
     const payload =
       montarPayloadServico(formulario)
 
     try {
-
       if (editando) {
-
         await servicoService.atualizar(
           servicoEdicao.id,
           payload
         )
-
       } else {
-
         await servicoService.criar(payload)
       }
 
       onSucesso()
-
       onFechar()
 
     } catch (erro) {
 
-      const mensagemErro =
-        extrairMensagensErro(
+      setMensagemErro(
+        obterMensagemErro(
           erro?.response?.data
         )
-
-      setErroGeral(mensagemErro)
+      )
 
     } finally {
 
       setSalvando(false)
+
     }
   }
-
-
 
   return (
     <Modal
@@ -182,14 +150,13 @@ export default function ServicoModal({
       }
       size="md"
     >
-
       <Modal.Body>
 
         <Input
           label="// NOME"
           name="nome"
           value={formulario.nome}
-          onChange={handleAlterarCampo}
+          onChange={alterarCampo}
           placeholder="Ex: Troca de óleo"
           required
           error={erros.nome}
@@ -201,8 +168,8 @@ export default function ServicoModal({
           as="textarea"
           rows={2}
           value={formulario.descricao}
-          onChange={handleAlterarCampo}
-          placeholder="Descrição técnica do procedimento"
+          onChange={alterarCampo}
+          placeholder="Descrição técnica do serviço"
           error={erros.descricao}
         />
 
@@ -213,20 +180,17 @@ export default function ServicoModal({
           step="0.01"
           min="0"
           value={formulario.valor}
-          onChange={handleAlterarCampo}
+          onChange={alterarCampo}
           placeholder="0,00"
           required
           error={erros.valor}
         />
 
-        {erroGeral && (
-
+        {mensagemErro && (
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
-
-            {erroGeral
+            {mensagemErro
               .split('\n')
               .map((mensagem, index) => (
-
                 <p
                   key={index}
                   className="font-mono text-xs text-[#e11d48]"
@@ -239,8 +203,6 @@ export default function ServicoModal({
 
       </Modal.Body>
 
-
-
       <Modal.Footer>
 
         <Button
@@ -252,14 +214,14 @@ export default function ServicoModal({
         </Button>
 
         <Button
+          type="submit"
           variant={
             editando
               ? 'secondary'
               : 'primary'
           }
-          type="submit"
           loading={salvando}
-          onClick={handleSalvar}
+          onClick={salvar}
         >
           {editando
             ? 'Salvar alterações'

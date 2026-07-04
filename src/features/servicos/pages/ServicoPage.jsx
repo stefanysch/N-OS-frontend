@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 
 import Button from '@/components/ui/Button'
+import Badge from '@/components/ui/Badge'
+import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import ServicoModal from '../components/ServicoModal'
-import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import { servicoService } from '../services/servicoService'
 
 import { formatarMoeda } from '@/utils/formatters'
-
-
 
 export default function ServicoPage() {
 
@@ -19,128 +18,126 @@ export default function ServicoPage() {
   const [carregando, setCarregando] =
     useState(true)
 
-  const [erroCarregamento, setErroCarregamento] =
+  const [erro, setErro] =
     useState(null)
 
-
-
-  const [modalFormularioAberto,
-    setModalFormularioAberto] =
+  const [modalAberto, setModalAberto] =
     useState(false)
 
   const [servicoEdicao, setServicoEdicao] =
     useState(null)
 
-
-
-  const [modalConfirmacao, setModalConfirmacao] =
+  const [confirmacao, setConfirmacao] =
     useState(null)
 
-  const [excluindoServico, setExcluindoServico] =
+  const [alterandoStatus, setAlterandoStatus] =
     useState(false)
 
-
-
-  useEffect(() => {
-
-    carregarServicos()
-
-  }, [])
-
-
-
-  async function carregarServicos() {
+  async function carregar() {
 
     setCarregando(true)
-
-    setErroCarregamento(null)
+    setErro(null)
 
     try {
 
-      const listaServicos =
+      const resposta =
         await servicoService.listar()
 
-      const servicosAtivos =
-        listaServicos.filter(
-          (servico) => servico.ativo
-        )
-
-      setServicos(servicosAtivos)
+      setServicos(
+        Array.isArray(resposta)
+          ? resposta
+          : []
+      )
 
     } catch {
 
-      setErroCarregamento(
+      setErro(
         'Falha ao carregar serviços.'
       )
 
     } finally {
 
       setCarregando(false)
+
     }
   }
 
+  useEffect(() => {
 
+    carregar()
 
-  function handleAbrirCriacao() {
+  }, [])
+
+  function abrirCriacao() {
 
     setServicoEdicao(null)
 
-    setModalFormularioAberto(true)
+    setModalAberto(true)
+
   }
 
-
-
-  function handleAbrirEdicao(servico) {
+  function abrirEdicao(servico) {
 
     setServicoEdicao(servico)
 
-    setModalFormularioAberto(true)
+    setModalAberto(true)
+
   }
 
+  function pedirConfirmacaoStatus(servico) {
 
+    setConfirmacao({
 
-  function handleAbrirConfirmacao(servico) {
-
-    setModalConfirmacao({
       id: servico.id,
-      mensagem: `Deseja deletar "${servico.nome}"?`
+
+      ativo: servico.ativo,
+
+      mensagem: servico.ativo
+        ? `Deseja inativar "${servico.nome}"?`
+        : `Deseja reativar "${servico.nome}"?`
+
     })
   }
 
+  async function alterarStatus() {
 
-
-  async function handleExcluirServico() {
-
-    setExcluindoServico(true)
+    setAlterandoStatus(true)
 
     try {
 
-      await servicoService.inativar(
-        modalConfirmacao.id
-      )
+      if (confirmacao.ativo) {
 
-      setServicos((listaAtual) =>
-        listaAtual.filter(
-          (servico) =>
-            servico.id !== modalConfirmacao.id
+        await servicoService.inativar(
+          confirmacao.id
         )
-      )
+
+      } else {
+
+        await servicoService.reativar(
+          confirmacao.id
+        )
+
+      }
+
+      await carregar()
 
     } catch {
 
-      alert('Erro ao deletar serviço.')
+      alert(
+        'Erro ao alterar status do serviço.'
+      )
 
     } finally {
 
-      setExcluindoServico(false)
+      setAlterandoStatus(false)
 
-      setModalConfirmacao(null)
+      setConfirmacao(null)
+
     }
   }
 
-
-
   return (
+
     <div className="min-h-screen bg-[#0d0d0d] font-mono text-white">
 
       <div className="flex items-center justify-between border-b border-[#1e1e1e] px-8 py-5">
@@ -159,14 +156,12 @@ export default function ServicoPage() {
 
         <Button
           variant="secondary"
-          onClick={handleAbrirCriacao}
+          onClick={abrirCriacao}
         >
           + Novo Serviço
         </Button>
 
       </div>
-
-
 
       <div className="px-8 py-6">
 
@@ -181,45 +176,44 @@ export default function ServicoPage() {
             Carregando...
 
           </div>
+
         )}
 
-
-
-        {erroCarregamento && !carregando && (
+        {erro && !carregando && (
 
           <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-3">
 
             <p className="font-mono text-xs text-[#e11d48]">
-              {erroCarregamento}
+              {erro}
             </p>
 
             <Button
               variant="ghost"
               size="sm"
               className="mt-2"
-              onClick={carregarServicos}
+              onClick={carregar}
             >
               Tentar novamente
             </Button>
 
           </div>
+
         )}
 
-
-
-        {!carregando && !erroCarregamento && (
+        {!carregando && !erro && (
 
           <div className="border border-[#1e1e1e]">
 
-            <div className="grid grid-cols-[80px_1fr_2fr_130px_120px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
+            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
 
               {[
                 '// ID',
                 '// NOME',
                 '// DESCRIÇÃO',
                 '// VALOR',
+                '// STATUS',
                 '// AÇÕES'
-              ].map((coluna) => (
+              ].map(coluna => (
 
                 <span
                   key={coluna}
@@ -227,10 +221,10 @@ export default function ServicoPage() {
                 >
                   {coluna}
                 </span>
+
               ))}
+
             </div>
-
-
 
             {servicos.length === 0 && (
 
@@ -239,55 +233,49 @@ export default function ServicoPage() {
                 Nenhum serviço cadastrado
 
               </div>
+
             )}
-
-
 
             {servicos.map((servico, index) => (
 
               <div
                 key={servico.id}
                 className={[
-                  'grid grid-cols-[80px_1fr_2fr_120px_120px]',
+                  'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
                   'transition-colors hover:bg-[#161616]',
                   index !== servicos.length - 1
                     ? 'border-b border-[#1a1a1a]'
+                    : '',
+                  !servico.ativo
+                    ? 'opacity-40'
                     : ''
                 ].join(' ')}
               >
 
                 <span className="font-mono text-xs text-[#e11d48]">
-
                   #{String(servico.id).padStart(4, '0')}
-
                 </span>
-
-
 
                 <span className="truncate pr-4 text-xs text-white">
-
                   {servico.nome}
-
                 </span>
-
-
 
                 <span className="truncate pr-4 text-xs text-[#555]">
-
                   {servico.descricao || '—'}
-
                 </span>
-
-
 
                 <span className="text-xs text-white">
-
                   {formatarMoeda(servico.valor)}
-
                 </span>
 
-
+                <Badge
+                  status={
+                    servico.ativo
+                      ? 'ativo'
+                      : 'inativo'
+                  }
+                />
 
                 <div className="flex items-center gap-2">
 
@@ -295,7 +283,7 @@ export default function ServicoPage() {
                     size="sm"
                     variant="ghost"
                     onClick={() =>
-                      handleAbrirEdicao(servico)
+                      abrirEdicao(servico)
                     }
                   >
                     Editar
@@ -308,64 +296,92 @@ export default function ServicoPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="hover:!text-[#e11d48]"
+                    className={
+                      servico.ativo
+                        ? 'hover:!text-[#e11d48]'
+                        : 'hover:!text-emerald-500'
+                    }
                     onClick={() =>
-                      handleAbrirConfirmacao(servico)
+                      pedirConfirmacaoStatus(servico)
                     }
                   >
-                    Deletar
+                    {servico.ativo
+                      ? 'Inativar'
+                      : 'Reativar'}
                   </Button>
 
                 </div>
+
               </div>
+
             ))}
+
           </div>
+
         )}
 
-
-
-        {!carregando &&
-          !erroCarregamento &&
+          {!carregando &&
+          !erro &&
           servicos.length > 0 && (
 
           <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
 
             <span>
+
               {servicos.length} serviço(s)
+
             </span>
 
             <span>
-              {servicos.length} ativos
+
+              {servicos.filter(
+                servico => servico.ativo
+              ).length} ativos
+
+              {' • '}
+
+              {servicos.filter(
+                servico => !servico.ativo
+              ).length} inativos
+
             </span>
 
           </div>
+
         )}
 
       </div>
 
-
-
       <ServicoModal
-        aberto={modalFormularioAberto}
+        aberto={modalAberto}
         onFechar={() =>
-          setModalFormularioAberto(false)
+          setModalAberto(false)
         }
         servicoEdicao={servicoEdicao}
-        onSucesso={carregarServicos}
+        onSucesso={carregar}
       />
 
-
-
       <ModalConfirmacao
-        aberto={Boolean(modalConfirmacao)}
-        mensagem={modalConfirmacao?.mensagem}
-        carregando={excluindoServico}
-        onConfirmar={handleExcluirServico}
+        aberto={Boolean(confirmacao)}
+        mensagem={confirmacao?.mensagem}
+        carregando={alterandoStatus}
+        onConfirmar={alterarStatus}
         onCancelar={() =>
-          setModalConfirmacao(null)
+          setConfirmacao(null)
+        }
+        textoBotao={
+          confirmacao?.ativo
+            ? 'Inativar'
+            : 'Reativar'
+        }
+        varianteBotao={
+          confirmacao?.ativo
+            ? 'danger'
+            : 'secondary'
         }
       />
 
     </div>
+
   )
 }

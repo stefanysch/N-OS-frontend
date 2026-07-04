@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import Layout    from '@/components/Layout'
 import PecaPage from '@/features/pecas/pages/PecaPage'
 import ServicoPage from '@/features/servicos/pages/ServicoPage'
-// placeholder para rotas ainda não implementadas
+
 const EmBreve = ({ nome }) => (
   <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 font-mono">
     <span className="text-[10px] uppercase tracking-[0.25em] text-[#e11d48]">N-OS</span>
