@@ -12,37 +12,52 @@ export default function Input({
   name,
   value,
   onChange,
+  onBlur,
   placeholder,
   required,
   disabled,
   error,
   hint,
   as: Tag = 'input',
-  options = [],       // só pra select
+  options = [],
   className = '',
   ...props
 }) {
   const baseClass = [
     'w-full bg-transparent',
-    'border-b border-[#2a2a2a]',
-    'pb-2 font-mono text-sm text-[var(--nos-text)]',
-    'placeholder-[#333] outline-none',
-    'transition-colors duration-150',
-    'focus:border-[#e11d48]',
-    error ? 'border-[#e11d48]/60' : '',
+    'pb-2 font-mono text-sm',
+    'text-(--nos-text)',
+    'placeholder-(--nos-text-faint)',
+    'outline-none transition-colors duration-150',
+    // borda inferior — muda conforme estado
+    error
+      ? 'border-b border-(--nos-red) focus:border-(--nos-red)'
+      : required && !value
+        ? 'border-b border-(--nos-red-border) focus:border-(--nos-red)'
+        : 'border-b border-(--nos-border-2) focus:border-(--nos-red)',
     disabled ? 'opacity-40 pointer-events-none' : '',
     className,
-  ].join(' ')
+  ].filter(Boolean).join(' ')
 
   return (
     <div className="flex flex-col gap-1">
       {label && (
         <label
           htmlFor={name}
-          className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]"
+          className={[
+            'font-mono text-[10px] uppercase tracking-[0.15em] transition-colors duration-150',
+            // label fica vermelha se tem erro ou se é required e está vazio
+            error
+              ? 'text-(--nos-red)'
+              : required && !value
+                ? 'text-(--nos-red-border)'
+                : 'text-(--nos-text-muted)',
+          ].join(' ')}
         >
           {label}
-          {required && <span className="ml-1 text-[#e11d48]">*</span>}
+          {required && (
+            <span className="ml-1 text-(--nos-red)">*</span>
+          )}
         </label>
       )}
 
@@ -52,6 +67,7 @@ export default function Input({
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
           className={[baseClass, 'appearance-none cursor-pointer'].join(' ')}
           {...props}
@@ -60,7 +76,7 @@ export default function Input({
             <option
               key={opt.value}
               value={opt.value}
-              className="bg-[#111] text-white"
+              className="bg-(--nos-surface) text-(--nos-text)"
             >
               {opt.label}
             </option>
@@ -72,6 +88,7 @@ export default function Input({
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
           className={[baseClass, 'resize-none'].join(' ')}
@@ -83,6 +100,7 @@ export default function Input({
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
           required={required}
@@ -92,12 +110,15 @@ export default function Input({
       )}
 
       {error && (
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[#e11d48]">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-(--nos-red)">
           {error}
         </span>
       )}
+
       {hint && !error && (
-        <span className="font-mono text-[9px] text-[#444]">{hint}</span>
+        <span className="font-mono text-[9px] text-(--nos-text-faint)">
+          {hint}
+        </span>
       )}
     </div>
   )

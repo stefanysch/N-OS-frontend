@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
-
 :root {
   /* ── cores base ── */
   --nos-bg:          #0d0d0d;
@@ -10,11 +8,13 @@
 
   /* ── texto ── */
   --nos-text:        #ffffff;
+  --nos-text-dim:    #888888;
   --nos-text-muted:  #555555;
   --nos-text-faint:  #333333;
 
   /* ── principal ── */
   --nos-red:         #e11d48;
+  --nos-red-hover:   #be1239;
   --nos-red-dim:     rgba(225, 29, 72, 0.12);
   --nos-red-border:  rgba(225, 29, 72, 0.3);
 
@@ -23,24 +23,30 @@
   --nos-warning:     #f59e0b;
   --nos-danger:      #e11d48;
 
-  --nos-font-logo:  'Michroma', sans-serif;        /* logo N-OS */
-  --nos-font-ui:    'Rajdhani', sans-serif;         /* nav, títulos, labels UI */
-  --nos-font-mono:  'JetBrains Mono', monospace;   /* dados, tabelas, código */
+  /* ── fontes ── */
+  --nos-font-logo:   'Michroma', sans-serif;
+  --nos-font-ui:     'Rajdhani', sans-serif;
+  --nos-font-mono:   'JetBrains Mono', monospace;
 
+  /* ── transição ── */
   --nos-transition:  150ms ease;
 }
 
 html.light {
+  /* ── cores base ── */
   --nos-bg:          #f2f2f2;
   --nos-surface:     #ffffff;
   --nos-surface-2:   #ebebeb;
   --nos-border:      #e0e0e0;
   --nos-border-2:    #cccccc;
 
+  /* ── texto ── */
   --nos-text:        #111111;
+  --nos-text-dim:    #4d4d4d;
   --nos-text-muted:  #666666;
   --nos-text-faint:  #aaaaaa;
 
+  /* ── principal ── */
   --nos-red-dim:     rgba(225, 29, 72, 0.08);
   --nos-red-border:  rgba(225, 29, 72, 0.25);
 }
@@ -60,4 +66,13 @@ html.light {
 /* dados, tabelas, badges — JetBrains Mono */
 .font-data {
   font-family: var(--nos-font-mono);
+}
+
+html,
+body {
+  background-color: var(--nos-bg);
+  color: var(--nos-text);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
 }

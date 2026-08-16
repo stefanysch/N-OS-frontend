@@ -3,25 +3,40 @@
  *
  * Uso:
  *   <Badge status="ativo" />
- *   <Badge status="inativo" />
- *   <Badge status="pendente" />
- *   <Badge status="em_andamento" />
- *   <Badge status="concluido" />
- *   <Badge label="Custom" color="red" />
+ *   <Badge status="aguardando_pecas" />
+ *   <Badge status="em_execucao" />
+ *   <Badge label="Custom" color="text-sky-400" dot="bg-sky-400" />
  */
 
+import { STATUS_OS } from '@/utils/statusOS'
+
+const presetsStatusOS = Object.fromEntries(
+  STATUS_OS.map((status) => [
+    status.preset,
+    { label: status.label, color: status.color, dot: status.dot },
+  ])
+)
+
 const presets = {
-  ativo:         { label: 'Ativo',          color: 'text-emerald-500',  dot: 'bg-emerald-500' },
-  inativo:       { label: 'Inativo',        color: 'text-[#444]',       dot: 'bg-[#333]' },
-  pendente:      { label: 'Pendente',       color: 'text-amber-400',    dot: 'bg-amber-400' },
-  em_andamento:  { label: 'Em andamento',   color: 'text-sky-400',      dot: 'bg-sky-400' },
-  concluido:     { label: 'Concluído',      color: 'text-emerald-500',  dot: 'bg-emerald-500' },
-  cancelado:     { label: 'Cancelado',      color: 'text-[#e11d48]',    dot: 'bg-[#e11d48]' },
-  aguardando:    { label: 'Aguardando',     color: 'text-violet-400',   dot: 'bg-violet-400' },
+  // entidade
+  ativo:            { label: 'Ativo',             color: 'text-emerald-500', dot: 'bg-emerald-500' },
+  inativo:          { label: 'Inativo',           color: 'text-(--nos-text-muted)', dot: 'bg-(--nos-text-faint)' },
+
+  ...presetsStatusOS,
+
+  // genéricos
+  pendente:         { label: 'Pendente',          color: 'text-amber-400',   dot: 'bg-amber-400'   },
+  em_andamento:     { label: 'Em andamento',      color: 'text-sky-400',     dot: 'bg-sky-400'     },
+  concluido:        { label: 'Concluído',         color: 'text-emerald-500', dot: 'bg-emerald-500' },
+  cancelado:        { label: 'Cancelado',         color: 'text-(--nos-red)', dot: 'bg-(--nos-red)' },
 }
 
-export default function Badge({ status, label, className = '' }) {
-  const preset = presets[status] ?? { label: label ?? status, color: 'text-[#555]', dot: 'bg-[#555]' }
+export default function Badge({ status, label, color, dot, className = '' }) {
+  const preset = presets[status] ?? {
+    label: label ?? status ?? '—',
+    color: color ?? 'text-(--nos-text-muted)',
+    dot:   dot   ?? 'bg-(--nos-text-muted)',
+  }
 
   return (
     <span

@@ -21,33 +21,33 @@ const styles = {
     'font-mono uppercase tracking-widest',
     'border transition-all duration-150',
     'disabled:opacity-40 disabled:pointer-events-none',
-    'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#e11d48]',
+    'focus:outline-none focus-visible:ring-1 focus-visible:ring-(--nos-red)',
   ].join(' '),
 
   variants: {
     primary: [
-      'bg-[#e11d48] border-[#e11d48] text-black',
-      'hover:bg-[#be1239] hover:border-[#be1239]',
+      'bg-(--nos-red) border-(--nos-red) text-black',
+      'hover:bg-(--nos-red-hover) hover:border-(--nos-red-hover)',
     ].join(' '),
 
     secondary: [
-      'bg-transparent border-[#e11d48] text-[#e11d48]',
-      'hover:bg-[#e11d48] hover:text-black',
+      'bg-transparent border-(--nos-red) text-(--nos-red)',
+      'hover:bg-(--nos-red) hover:text-black',
     ].join(' '),
 
     ghost: [
-      'bg-transparent border-transparent text-[#555]',
-      'hover:text-white hover:border-transparent',
+      'bg-transparent border-transparent text-(--nos-text-muted)',
+      'hover:text-(--nos-text) hover:border-transparent',
     ].join(' '),
 
     danger: [
-      'bg-transparent border-[#e11d48]/40 text-[#e11d48]/70',
-      'hover:border-[#e11d48] hover:text-[#e11d48] hover:bg-[#e11d48]/10',
+      'bg-transparent border-(--nos-red)/40 text-(--nos-red)/70',
+      'hover:border-(--nos-red) hover:text-(--nos-red) hover:bg-(--nos-red-dim)',
     ].join(' '),
 
     outline: [
-      'bg-transparent border-[#2a2a2a] text-[#888]',
-      'hover:border-[#444] hover:text-white',
+      'bg-transparent border-(--nos-border-2) text-(--nos-text-dim)',
+      'hover:border-(--nos-text-muted) hover:text-(--nos-text)',
     ].join(' '),
   },
 

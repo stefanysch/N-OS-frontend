@@ -30,9 +30,15 @@ const sizes = {
 }
 
 // sub-componentes
+
 function ModalBody({ children, className = '' }) {
   return (
-    <div className={['px-6 py-5 space-y-5', className].join(' ')}>
+    <div
+      className={[
+        'space-y-5 px-6 py-5',
+        className,
+      ].join(' ')}
+    >
       {children}
     </div>
   )
@@ -40,7 +46,7 @@ function ModalBody({ children, className = '' }) {
 
 function ModalFooter({ children }) {
   return (
-    <div className="flex items-center justify-end gap-3 border-t border-[#2a2a2a] px-6 py-4">
+    <div className="flex items-center justify-end gap-3 border-t border-(--nos-border-2) px-6 py-4">
       {children}
     </div>
   )
@@ -50,12 +56,13 @@ function ModalSection({ title, children }) {
   return (
     <div>
       {title && (
-        <div className="mb-3 border-b border-[#1e1e1e] pb-1">
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#444]">
+        <div className="mb-3 border-b border-(--nos-border) pb-1">
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-(--nos-text-muted)">
             {title}
           </span>
         </div>
       )}
+
       {children}
     </div>
   )
@@ -72,82 +79,104 @@ export default function Modal({
   fecharNoOverlay = true,
   children,
 }) {
-  // bloqueia scroll do body quando aberto
+  // bloqueia scroll do body quando o modal está aberto
   useEffect(() => {
     if (aberto) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
     }
-    return () => { document.body.style.overflow = '' }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
   }, [aberto])
 
-  // fecha com ESC
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'Escape' && aberto) onFechar()
+      if (e.key === 'Escape' && aberto) {
+        onFechar()
+      }
     }
+
     document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
+
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+    }
   }, [aberto, onFechar])
 
   if (!aberto) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* overlay */}
+
       <div
         className="absolute inset-0 bg-black/85 backdrop-blur-sm"
         onClick={fecharNoOverlay ? onFechar : undefined}
       />
 
-      {/* painel */}
       <div
         className={[
           'relative z-10 w-full',
           sizes[size] ?? sizes.md,
-          'border border-[#2a2a2a] bg-[#111111] shadow-2xl',
+          'border border-(--nos-border-2)',
+          'bg-(--nos-surface)',
+          'text-(--nos-text)',
+          'shadow-2xl',
           'animate-in fade-in slide-in-from-bottom-2 duration-200',
         ].join(' ')}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* header */}
-        <div className="flex items-start justify-between border-b border-[#2a2a2a] px-6 py-4">
+
+        <div className="flex items-start justify-between border-b border-(--nos-border-2) px-6 py-4">
+
           <div>
             {subtitulo && (
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#e11d48] mb-0.5">
+              <p className="mb-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-(--nos-red)">
                 {subtitulo}
               </p>
             )}
+
             {titulo && (
-              <h2 className="font-mono text-sm uppercase tracking-widest text-white">
+              <h2 className="font-mono text-sm uppercase tracking-widest text-(--nos-text)">
                 {titulo}
               </h2>
             )}
           </div>
 
-          <div className="flex items-center gap-4 ml-4 shrink-0">
+          <div className="ml-4 flex shrink-0 items-center gap-4">
+
             {badge && (
-              <span className="font-mono text-xs text-[#444]">{badge}</span>
+              <span className="font-mono text-xs text-(--nos-text-muted)">
+                {badge}
+              </span>
             )}
+
             <button
+              type="button"
               onClick={onFechar}
-              className="font-mono text-lg leading-none text-[#444] transition-colors hover:text-[#e11d48]"
+              className={[
+                'font-mono text-lg leading-none',
+                'text-(--nos-text-muted)',
+                'transition-colors duration-150',
+                'hover:text-(--nos-red)',
+              ].join(' ')}
               aria-label="Fechar modal"
             >
               ✕
             </button>
+
           </div>
         </div>
 
-        {/* conteúdo */}
         {children}
+
       </div>
     </div>
   )
 }
 
-// exporta sub-componentes como propriedades
-Modal.Body    = ModalBody
-Modal.Footer  = ModalFooter
+Modal.Body = ModalBody
+Modal.Footer = ModalFooter
 Modal.Section = ModalSection

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import ServicoModal from '../components/ServicoModal'
@@ -14,6 +15,9 @@ export default function ServicoPage() {
 
   const [servicos, setServicos] =
     useState([])
+
+  const [busca, setBusca] =
+    useState('')
 
   const [carregando, setCarregando] =
     useState(true)
@@ -136,19 +140,23 @@ export default function ServicoPage() {
     }
   }
 
+  const servicosFiltrados = servicos.filter((servico) =>
+    servico.nome?.toLowerCase()?.includes(busca.trim().toLowerCase())
+  )
+
   return (
 
-    <div className="min-h-screen bg-[#0d0d0d] font-mono text-white">
+    <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
 
-      <div className="flex items-center justify-between border-b border-[#1e1e1e] px-8 py-5">
+      <div className="flex items-center justify-between border-b border-(--nos-border) px-8 py-5">
 
         <div>
 
-          <p className="text-[10px] uppercase tracking-[0.25em] text-[#e11d48]">
+          <p className="text-[10px] uppercase tracking-[0.25em] text-(--nos-red)">
             N-OS / SERVIÇOS
           </p>
 
-          <h1 className="text-sm uppercase tracking-widest text-white">
+          <h1 className="text-sm uppercase tracking-widest text-(--nos-text)">
             // SERVIÇOS
           </h1>
 
@@ -165,11 +173,19 @@ export default function ServicoPage() {
 
       <div className="px-8 py-6">
 
+        <div className="mb-4">
+          <SearchInput
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome..."
+          />
+        </div>
+
         {carregando && (
 
-          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-[#444]">
+          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-(--nos-text-muted)">
 
-            <span className="animate-pulse text-[#e11d48]">
+            <span className="animate-pulse text-(--nos-red)">
               ■
             </span>
 
@@ -181,9 +197,9 @@ export default function ServicoPage() {
 
         {erro && !carregando && (
 
-          <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-3">
+          <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-3">
 
-            <p className="font-mono text-xs text-[#e11d48]">
+            <p className="font-mono text-xs text-(--nos-red)">
               {erro}
             </p>
 
@@ -202,9 +218,9 @@ export default function ServicoPage() {
 
         {!carregando && !erro && (
 
-          <div className="border border-[#1e1e1e]">
+          <div className="border border-(--nos-border)">
 
-            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
+            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
               {[
                 '// ID',
@@ -217,7 +233,7 @@ export default function ServicoPage() {
 
                 <span
                   key={coluna}
-                  className="text-[10px] uppercase tracking-[0.15em] text-[#444]"
+                  className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)"
                 >
                   {coluna}
                 </span>
@@ -226,26 +242,28 @@ export default function ServicoPage() {
 
             </div>
 
-            {servicos.length === 0 && (
+            {servicosFiltrados.length === 0 && (
 
-              <div className="py-12 text-center text-xs uppercase tracking-widest text-[#333]">
+              <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
 
-                Nenhum serviço cadastrado
+                {busca
+                  ? 'Nenhum serviço encontrado para essa busca'
+                  : 'Nenhum serviço cadastrado'}
 
               </div>
 
             )}
 
-            {servicos.map((servico, index) => (
+            {servicosFiltrados.map((servico, index) => (
 
               <div
                 key={servico.id}
                 className={[
                   'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
-                  'transition-colors hover:bg-[#161616]',
-                  index !== servicos.length - 1
-                    ? 'border-b border-[#1a1a1a]'
+                  'transition-colors hover:bg-(--nos-surface-2)',
+                  index !== servicosFiltrados.length - 1
+                    ? 'border-b border-(--nos-border)'
                     : '',
                   !servico.ativo
                     ? 'opacity-40'
@@ -253,19 +271,19 @@ export default function ServicoPage() {
                 ].join(' ')}
               >
 
-                <span className="font-mono text-xs text-[#e11d48]">
+                <span className="font-mono text-xs text-(--nos-red)">
                   #{String(servico.id).padStart(4, '0')}
                 </span>
 
-                <span className="truncate pr-4 text-xs text-white">
+                <span className="truncate pr-4 text-xs text-(--nos-text)">
                   {servico.nome}
                 </span>
 
-                <span className="truncate pr-4 text-xs text-[#555]">
+                <span className="truncate pr-4 text-xs text-(--nos-text-muted)">
                   {servico.descricao || '—'}
                 </span>
 
-                <span className="text-xs text-white">
+                <span className="text-xs text-(--nos-text)">
                   {formatarMoeda(servico.valor)}
                 </span>
 
@@ -289,7 +307,7 @@ export default function ServicoPage() {
                     Editar
                   </Button>
 
-                  <span className="text-[#222]">
+                  <span className="text-(--nos-text-faint)">
                     |
                   </span>
 
@@ -298,7 +316,7 @@ export default function ServicoPage() {
                     variant="ghost"
                     className={
                       servico.ativo
-                        ? 'hover:!text-[#e11d48]'
+                        ? 'hover:!text-(--nos-red)'
                         : 'hover:!text-emerald-500'
                     }
                     onClick={() =>
@@ -322,25 +340,25 @@ export default function ServicoPage() {
 
           {!carregando &&
           !erro &&
-          servicos.length > 0 && (
+          servicosFiltrados.length > 0 && (
 
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
+          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
 
             <span>
 
-              {servicos.length} serviço(s)
+              {servicosFiltrados.length} serviço(s)
 
             </span>
 
             <span>
 
-              {servicos.filter(
+              {servicosFiltrados.filter(
                 servico => servico.ativo
               ).length} ativos
 
               {' • '}
 
-              {servicos.filter(
+              {servicosFiltrados.filter(
                 servico => !servico.ativo
               ).length} inativos
 

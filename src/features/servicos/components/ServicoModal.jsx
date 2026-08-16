@@ -9,7 +9,7 @@ import { servicoService } from '../services/servicoService'
 import {
   validarServico,
   montarPayloadServico
-} from '@/validations/servicoValidation'
+} from '../validations/servicoValidation'
 
 const FORMULARIO_VAZIO = {
   nome: '',
@@ -187,13 +187,13 @@ export default function ServicoModal({
         />
 
         {mensagemErro && (
-          <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2">
+          <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-2">
             {mensagemErro
               .split('\n')
               .map((mensagem, index) => (
                 <p
                   key={index}
-                  className="font-mono text-xs text-[#e11d48]"
+                  className="font-mono text-xs text-(--nos-red)"
                 >
                   {mensagem}
                 </p>

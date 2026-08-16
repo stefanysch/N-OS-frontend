@@ -1,7 +1,7 @@
 /**
  * N-OS SidebarCadastros
- * Aparece APENAS quando o usuário está em qualquer rota de /clientes, /veiculos, /pecas ou /servicos.
- * Fica fixada à esquerda do conteúdo, como um sub-menu persistente.
+ * aparece APENAS quando o usuário está em qualquer rota de /clientes, /veiculos, /pecas ou /servicos.
+ * fica fixada à esquerda do conteúdo, como um sub-menu persistente.
  */
 
 import { NavLink } from 'react-router-dom'
@@ -57,43 +57,59 @@ const itens = [
 
 export default function SidebarCadastros() {
   return (
-    <aside className="w-[200px] shrink-0 border-r border-[#1e1e1e] bg-[#0a0a0a]">
-      {/* título do grupo */}
-      <div className="border-b border-[#1e1e1e] px-5 py-4">
-        <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#e11d48]">
+    <aside
+      className="w-[200px] shrink-0 border-r bg-(--nos-surface)"
+      style={{ borderColor: 'var(--nos-border)' }}
+    >
+      <div
+        className="border-b px-5 py-4"
+        style={{ borderColor: 'var(--nos-border)' }}
+      >
+        <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-(--nos-red)">
           N-OS
         </p>
-        <p className="font-mono text-[11px] uppercase tracking-widest text-[#555]">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-(--nos-text-muted)">
           Cadastros
         </p>
       </div>
 
-      {/* itens de navegação */}
       <nav className="py-2">
         {itens.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            className={({ isActive }) =>
-              [
-                'group flex items-center gap-3 px-5 py-3',
-                'border-l-2 transition-all duration-150',
-                isActive
-                  ? 'border-[#e11d48] bg-[#e11d48]/5 text-[#e11d48]'
-                  : 'border-transparent text-[#444] hover:border-[#2a2a2a] hover:bg-[#111] hover:text-[#888]',
-              ].join(' ')
-            }
+            className="group flex items-center gap-3 border-l-2 px-5 py-3 transition-colors"
+            style={({ isActive }) => ({
+              borderColor: isActive
+                ? 'var(--nos-red)'
+                : 'transparent',
+              background: isActive
+                ? 'var(--nos-red-dim)'
+                : 'transparent',
+              color: isActive
+                ? 'var(--nos-red)'
+                : 'var(--nos-text-muted)',
+            })}
           >
             {({ isActive }) => (
               <>
-                <span className={isActive ? 'text-[#e11d48]' : 'text-[#333] group-hover:text-[#555]'}>
+                <span
+                  className="text-sm"
+                  style={{
+                    color: isActive
+                      ? 'var(--nos-red)'
+                      : 'var(--nos-text-faint)',
+                  }}
+                >
                   {item.icon}
                 </span>
-                <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-widest leading-none">
+
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest">
                     {item.label}
                   </p>
-                  <p className="mt-0.5 font-mono text-[9px] text-[#333] group-hover:text-[#444]">
+
+                  <p className="font-mono text-[9px] text-(--nos-text-faint)">
                     {item.descricao}
                   </p>
                 </div>

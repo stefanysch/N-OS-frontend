@@ -1,55 +1,101 @@
 /**
  * N-OS Stepper
- * Indica progresso no wizard de criação de OS.
+ * Indica progresso no fluxo guiado de criação.
+ *
+ * O fluxo possui três etapas principais:
+ *   Cliente → Veículo → Ordem de Serviço
+ *
+ * Cliente e Veículo são preenchidos através de modais,
+ * enquanto Ordem de Serviço possui uma tela dedicada.
  *
  * Uso:
  *   const steps = [
- *     { id: 'cliente',  label: 'Cliente' },
- *     { id: 'veiculo',  label: 'Veículo' },
- *     { id: 'os',       label: 'Ordem de Serviço' },
+ *     { id: 'cliente', label: 'Cliente' },
+ *     { id: 'veiculo', label: 'Veículo' },
+ *     { id: 'os', label: 'Ordem de Serviço' },
  *   ]
  *
- *   <Stepper steps={steps} currentStep="veiculo" completedSteps={['cliente']} />
- *
- * Estados por step: 'done' | 'current' | 'pending'
+ *   <Stepper
+ *     steps={steps}
+ *     currentStep="veiculo"
+ *     completedSteps={['cliente']}
+ *   />
  */
 
-function StepIcon({ state }) {
+function StepCircle({ index, state }) {
   if (state === 'done') {
     return (
-      <span className="flex h-5 w-5 items-center justify-center border border-emerald-500 text-emerald-500 text-[9px]">
-        ✓
-      </span>
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-emerald-500 bg-emerald-500/10">
+        <span className="font-mono text-[11px] font-medium text-emerald-500">
+          ✓
+        </span>
+      </div>
     )
   }
+
   if (state === 'current') {
     return (
-      <span className="flex h-5 w-5 items-center justify-center border border-[#e11d48] bg-[#e11d48]/10">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#e11d48] animate-pulse" />
-      </span>
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-(--nos-red) bg-(--nos-red)/10">
+        <span className="font-mono text-[11px] font-medium text-(--nos-red)">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      </div>
     )
   }
+
   return (
-    <span className="flex h-5 w-5 items-center justify-center border border-[#2a2a2a]">
-      <span className="h-1 w-1 rounded-full bg-[#333]" />
-    </span>
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-(--nos-border-2) bg-transparent">
+      <span className="font-mono text-[11px] text-(--nos-text-muted)">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+    </div>
+  )
+}
+
+function Step({ step, index, state }) {
+  return (
+    <div className="flex shrink-0 flex-col items-center gap-2">
+      <StepCircle
+        index={index}
+        state={state}
+      />
+
+      <span
+        className={[
+          'whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.15em]',
+          state === 'done'
+            ? 'text-emerald-500'
+            : state === 'current'
+              ? 'text-(--nos-red)'
+              : 'text-(--nos-text-muted)',
+        ].join(' ')}
+      >
+        {step.label}
+      </span>
+    </div>
   )
 }
 
 function Connector({ done }) {
   return (
-    <div className="flex-1 mx-2">
+    <div className="flex min-w-[80px] flex-1 items-center pt-4">
       <div
         className={[
-          'h-px transition-colors duration-300',
-          done ? 'bg-emerald-500/40' : 'bg-[#2a2a2a]',
+          'h-px w-full',
+          done
+            ? 'bg-emerald-500/50'
+            : 'bg-(--nos-border-2)',
         ].join(' ')}
       />
     </div>
   )
 }
 
-export default function Stepper({ steps = [], currentStep, completedSteps = [] }) {
+export default function Stepper({
+  steps = [],
+  currentStep,
+  completedSteps = [],
+}) {
   const getState = (stepId) => {
     if (completedSteps.includes(stepId)) return 'done'
     if (stepId === currentStep) return 'current'
@@ -57,30 +103,26 @@ export default function Stepper({ steps = [], currentStep, completedSteps = [] }
   }
 
   return (
-    <div className="flex items-center w-full font-mono">
-      {steps.map((step, i) => {
+    <div className="flex w-full items-start">
+      {steps.map((step, index) => {
         const state = getState(step.id)
-        const isLast = i === steps.length - 1
+        const isLast = index === steps.length - 1
 
         return (
-          <div key={step.id} className="flex items-center flex-1">
-            {/* step */}
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <StepIcon state={state} />
-              <span
-                className={[
-                  'text-[9px] uppercase tracking-[0.1em] whitespace-nowrap',
-                  state === 'done'    ? 'text-emerald-500' :
-                  state === 'current' ? 'text-[#e11d48]'   : 'text-[#333]',
-                ].join(' ')}
-              >
-                {step.label}
-              </span>
-            </div>
+          <div
+            key={step.id}
+            className="contents"
+          >
+            <Step
+              step={step}
+              index={index}
+              state={state}
+            />
 
-            {/* connector */}
             {!isLast && (
-              <Connector done={completedSteps.includes(step.id)} />
+              <Connector
+                done={completedSteps.includes(step.id)}
+              />
             )}
           </div>
         )

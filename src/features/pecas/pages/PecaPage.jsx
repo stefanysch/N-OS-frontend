@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import PecaModal from '../components/PecaModal'
@@ -13,6 +14,8 @@ import { formatarMoeda } from '@/utils/formatters'
 export default function PecaPage() {
 
   const [pecas, setPecas] = useState([])
+
+  const [busca, setBusca] = useState('')
 
   const [carregando, setCarregando] =
     useState(true)
@@ -143,19 +146,23 @@ export default function PecaPage() {
 
   }
 
+  const pecasFiltradas = pecas.filter((peca) =>
+    peca.nome?.toLowerCase()?.includes(busca.trim().toLowerCase())
+  )
+
   return (
 
-    <div className="min-h-screen bg-[#0d0d0d] font-mono text-white">
+    <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
 
-      <div className="flex items-center justify-between border-b border-[#1e1e1e] px-8 py-5">
+      <div className="flex items-center justify-between border-b border-(--nos-border) px-8 py-5">
 
         <div>
 
-          <p className="text-[10px] uppercase tracking-[0.25em] text-[#e11d48]">
+          <p className="text-[10px] uppercase tracking-[0.25em] text-(--nos-red)">
             N-OS / PEÇAS
           </p>
 
-          <h1 className="text-sm uppercase tracking-widest text-white">
+          <h1 className="text-sm uppercase tracking-widest text-(--nos-text)">
             // PEÇAS
           </h1>
 
@@ -172,11 +179,19 @@ export default function PecaPage() {
 
       <div className="px-8 py-6">
 
+        <div className="mb-4">
+          <SearchInput
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome..."
+          />
+        </div>
+
         {carregando && (
 
-          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-[#444]">
+          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-(--nos-text-muted)">
 
-            <span className="animate-pulse text-[#e11d48]">
+            <span className="animate-pulse text-(--nos-red)">
               ■
             </span>
 
@@ -188,9 +203,9 @@ export default function PecaPage() {
 
         {erro && !carregando && (
 
-          <div className="border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-3">
+          <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-3">
 
-            <p className="font-mono text-xs text-[#e11d48]">
+            <p className="font-mono text-xs text-(--nos-red)">
 
               {erro}
 
@@ -211,9 +226,9 @@ export default function PecaPage() {
 
         {!carregando && !erro && (
 
-          <div className="border border-[#1e1e1e]">
+          <div className="border border-(--nos-border)">
 
-            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-[#1e1e1e] bg-[#111] px-4 py-3">
+            <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
               {[
                 '// ID',
@@ -226,7 +241,7 @@ export default function PecaPage() {
 
                 <span
                   key={coluna}
-                  className="text-[10px] uppercase tracking-[0.15em] text-[#444]"
+                  className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)"
                 >
                   {coluna}
                 </span>
@@ -235,26 +250,28 @@ export default function PecaPage() {
 
             </div>
 
-            {pecas.length === 0 && (
+            {pecasFiltradas.length === 0 && (
 
-              <div className="py-12 text-center text-xs uppercase tracking-widest text-[#333]">
+              <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
 
-                Nenhuma peça cadastrada
+                {busca
+                  ? 'Nenhuma peça encontrada para essa busca'
+                  : 'Nenhuma peça cadastrada'}
 
               </div>
 
             )}
 
-            {pecas.map((peca, indice) => (
+            {pecasFiltradas.map((peca, indice) => (
 
               <div
                 key={peca.id}
                 className={[
                   'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
-                  'transition-colors hover:bg-[#161616]',
-                  indice !== pecas.length - 1
-                    ? 'border-b border-[#1a1a1a]'
+                  'transition-colors hover:bg-(--nos-surface-2)',
+                  indice !== pecasFiltradas.length - 1
+                    ? 'border-b border-(--nos-border)'
                     : '',
                   !peca.ativo
                     ? 'opacity-40'
@@ -262,25 +279,25 @@ export default function PecaPage() {
                 ].join(' ')}
               >
 
-                <span className="font-mono text-xs text-[#e11d48]">
+                <span className="font-mono text-xs text-(--nos-red)">
 
                   #{String(peca.id).padStart(4, '0')}
 
                 </span>
 
-                <span className="truncate pr-4 text-xs text-white">
+                <span className="truncate pr-4 text-xs text-(--nos-text)">
 
                   {peca.nome}
 
                 </span>
 
-                <span className="truncate pr-4 text-xs text-[#555]">
+                <span className="truncate pr-4 text-xs text-(--nos-text-muted)">
 
                   {peca.descricao || '—'}
 
                 </span>
 
-                <span className="text-xs text-white">
+                <span className="text-xs text-(--nos-text)">
 
                   {formatarMoeda(peca.valor)}
 
@@ -304,7 +321,7 @@ export default function PecaPage() {
                     Editar
                   </Button>
 
-                  <span className="text-[#222]">
+                  <span className="text-(--nos-text-faint)">
                     |
                   </span>
 
@@ -313,7 +330,7 @@ export default function PecaPage() {
                     variant="ghost"
                     className={
                       peca.ativo
-                        ? 'hover:!text-[#e11d48]'
+                        ? 'hover:!text-(--nos-red)'
                         : 'hover:!text-emerald-500'
                     }
                     onClick={() => abrirConfirmacao(peca)}
@@ -335,25 +352,25 @@ export default function PecaPage() {
 
         {!carregando &&
           !erro &&
-          pecas.length > 0 && (
+          pecasFiltradas.length > 0 && (
 
-            <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-[#333]">
+            <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
 
               <span>
 
-                {pecas.length} peça(s)
+                {pecasFiltradas.length} peça(s)
 
               </span>
 
               <span>
 
-                {pecas.filter(
+                {pecasFiltradas.filter(
                   (peca) => peca.ativo
                 ).length} ativas
 
                 {' • '}
 
-                {pecas.filter(
+                {pecasFiltradas.filter(
                   (peca) => !peca.ativo
                 ).length} inativas
 

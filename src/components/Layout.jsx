@@ -2,8 +2,8 @@
  * N-OS Layout principal
  *
  * Lógica de sidebar:
- * - Rotas /clientes, /veiculos, /pecas, /servicos  → mostra SidebarCadastros à esquerda
- * - Todas as outras rotas                           → conteúdo ocupa largura total
+ * - rotas /clientes, /veiculos, /pecas, /servicos  → mostra SidebarCadastros à esquerda
+ * - todas as outras rotas                           → conteúdo ocupa largura total
  */
 
 import { Outlet, useLocation } from 'react-router-dom'
@@ -18,7 +18,7 @@ export default function Layout() {
   const mostrarSidebar = CADASTROS_PREFIXOS.some((p) => pathname.startsWith(p))
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0d0d0d] font-mono text-white">
+    <div className="flex min-h-screen flex-col bg-(--nos-bg) font-mono text-(--nos-text)">
       <Header />
 
       <div className="flex flex-1 overflow-hidden">
