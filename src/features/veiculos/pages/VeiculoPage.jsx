@@ -4,12 +4,14 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
+import ModalErro from '@/components/shared/ModalErro'
 
 import VeiculoModal from '../components/VeiculoModal'
 
 import { veiculoService } from '../services/veiculoService'
 import { clienteService } from '@/features/clientes/services/clienteService'
 import { formatarPlaca } from '@/utils/formatters'
+import { obterMensagemErro } from '@/utils/erros'
 
 export default function VeiculoPage() {
 
@@ -22,6 +24,7 @@ export default function VeiculoPage() {
   const [veiculoEdicao, setVeiculoEdicao] = useState(null)
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
+  const [erroAcao, setErroAcao] = useState(null)
 
   useEffect(() => {
     carregar()
@@ -83,8 +86,8 @@ export default function VeiculoPage() {
       }
 
       await carregar()
-    } catch {
-      setErro('Erro ao alterar status do veículo.')
+    } catch (erro) {
+      setErroAcao(obterMensagemErro(erro?.response?.data, 'Erro ao alterar status do veículo.'))
     } finally {
       setAlterandoStatus(false)
       setConfirmacaoStatus(null)
@@ -259,17 +262,21 @@ export default function VeiculoPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => abrirEdicao(veiculo)}
-                  >
-                    Editar
-                  </Button>
+                  {veiculo.ativo && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => abrirEdicao(veiculo)}
+                      >
+                        Editar
+                      </Button>
 
-                  <span className="text-(--nos-border-2)">
-                    |
-                  </span>
+                      <span className="text-(--nos-border-2)">
+                        |
+                      </span>
+                    </>
+                  )}
 
                   <Button
                     size="sm"
@@ -335,6 +342,12 @@ export default function VeiculoPage() {
             ? 'danger'
             : 'secondary'
         }
+      />
+
+      <ModalErro
+        aberto={Boolean(erroAcao)}
+        mensagem={erroAcao}
+        onFechar={() => setErroAcao(null)}
       />
 
     </div>

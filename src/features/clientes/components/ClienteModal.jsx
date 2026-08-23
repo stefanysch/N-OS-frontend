@@ -6,6 +6,8 @@ import Button from '@/components/ui/Button'
 import Stepper from '@/components/ui/Stepper'
 
 import { clienteService } from '../services/clienteService'
+import { cepService } from '../services/cepService'
+import { obterMensagemErro } from '@/utils/erros'
 
 import {
   validarCliente,
@@ -84,13 +86,6 @@ function aplicarMask(campo, valor, tipoDocumento) {
   return valor
 }
 
-function obterMensagemErro(data) {
-  if (typeof data === 'string') return data
-  if (data?.errors) return Object.values(data.errors).flat().join('\n')
-  if (data?.title) return data.title
-  return 'Erro ao salvar cliente.'
-}
-
 export default function ClienteModal({
   aberto,
   onFechar,
@@ -103,6 +98,7 @@ export default function ClienteModal({
   const [salvando, setSalvando] = useState(false)
   const [mensagemErro, setMensagemErro] = useState(null)
   const [verificandoDoc, setVerificandoDoc] = useState(false)
+  const [buscandoCep, setBuscandoCep] = useState(false)
 
   const editando = Boolean(clienteEdicao)
 
@@ -217,6 +213,45 @@ export default function ClienteModal({
     }
   }
 
+  async function buscarCep() {
+    const digitos = formulario.cep.replace(/\D/g, '')
+
+    if (digitos.length !== 8) return
+
+    setBuscandoCep(true)
+
+    try {
+      const endereco = await cepService.buscarEndereco(digitos)
+
+      if (endereco) {
+        setFormulario((ant) => ({
+          ...ant,
+          logradouro: endereco.logradouro || ant.logradouro,
+          bairro: endereco.bairro || ant.bairro,
+          cidade: endereco.cidade || ant.cidade,
+          estado: endereco.estado || ant.estado,
+        }))
+
+        setErros((ant) => ({
+          ...ant,
+          cep: null,
+          logradouro: null,
+          bairro: null,
+          cidade: null,
+          estado: null,
+        }))
+      } else {
+        setErros((ant) => ({
+          ...ant,
+          cep: 'CEP não encontrado',
+        }))
+      }
+    } catch {
+    } finally {
+      setBuscandoCep(false)
+    }
+  }
+
   async function salvar(e) {
     e.preventDefault()
 
@@ -255,7 +290,7 @@ export default function ClienteModal({
       }
     } catch (erro) {
       setMensagemErro(
-        obterMensagemErro(erro?.response?.data)
+        obterMensagemErro(erro?.response?.data, 'Erro ao salvar cliente.')
       )
     } finally {
       setSalvando(false)
@@ -387,20 +422,27 @@ export default function ClienteModal({
         </div>
 
         <p className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-(--nos-text-faint)">
-          // endereço
-          <span className="ml-1 text-(--nos-red)">*</span>
+          // endereço (opcional)
         </p>
 
         <div className="grid grid-cols-[110px_1fr] gap-3">
-          <Input
-            label="// CEP"
-            name="cep"
-            value={formulario.cep}
-            onChange={alterarCampo}
-            placeholder="00000-000"
-            error={erros.cep}
-            required
-          />
+          <div>
+            <Input
+              label="// CEP"
+              name="cep"
+              value={formulario.cep}
+              onChange={alterarCampo}
+              onBlur={buscarCep}
+              placeholder="00000-000"
+              error={erros.cep}
+            />
+
+            {buscandoCep && (
+              <p className="mt-1 text-[10px] text-(--nos-text-muted)">
+                Buscando...
+              </p>
+            )}
+          </div>
 
           <Input
             label="// LOGRADOURO"
@@ -409,7 +451,6 @@ export default function ClienteModal({
             onChange={alterarCampo}
             placeholder="Rua, Avenida..."
             error={erros.logradouro}
-            required
           />
         </div>
 
@@ -421,7 +462,6 @@ export default function ClienteModal({
             onChange={alterarCampo}
             placeholder="123"
             error={erros.numero}
-            required
           />
 
           <Input
@@ -431,7 +471,6 @@ export default function ClienteModal({
             onChange={alterarCampo}
             placeholder="Bairro"
             error={erros.bairro}
-            required
           />
 
           <Input
@@ -451,7 +490,6 @@ export default function ClienteModal({
             onChange={alterarCampo}
             placeholder="Cidade"
             error={erros.cidade}
-            required
           />
 
           <Input
@@ -461,7 +499,6 @@ export default function ClienteModal({
             onChange={alterarCampo}
             placeholder="PR"
             error={erros.estado}
-            required
           />
         </div>
 

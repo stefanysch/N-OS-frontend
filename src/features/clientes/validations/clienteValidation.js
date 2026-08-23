@@ -28,23 +28,35 @@ export function validarCliente(formulario) {
     erros.documento = 'CNPJ inválido'
   }
 
-  if (!formulario.cep.trim())
-    erros.cep = 'CEP é obrigatório'
+  // endereço é opcional como um todo, mas se algum campo foi preenchido
+  // os outros passam a ser exigidos. 
+  const enderecoIniciado =
+    formulario.cep.trim() ||
+    formulario.logradouro.trim() ||
+    formulario.numero.trim() ||
+    formulario.bairro.trim() ||
+    formulario.cidade.trim() ||
+    formulario.estado.trim()
 
-  if (!formulario.logradouro.trim())
-    erros.logradouro = 'Logradouro é obrigatório'
+  if (enderecoIniciado) {
+    if (!formulario.cep.trim())
+      erros.cep = 'CEP é obrigatório'
 
-  if (!formulario.numero.trim())
-    erros.numero = 'Número é obrigatório'
+    if (!formulario.logradouro.trim())
+      erros.logradouro = 'Logradouro é obrigatório'
 
-  if (!formulario.bairro.trim())
-    erros.bairro = 'Bairro é obrigatório'
+    if (!formulario.numero.trim())
+      erros.numero = 'Número é obrigatório'
 
-  if (!formulario.cidade.trim())
-    erros.cidade = 'Cidade é obrigatória'
+    if (!formulario.bairro.trim())
+      erros.bairro = 'Bairro é obrigatório'
 
-  if (!formulario.estado.trim())
-    erros.estado = 'UF é obrigatória'
+    if (!formulario.cidade.trim())
+      erros.cidade = 'Cidade é obrigatória'
+
+    if (!formulario.estado.trim())
+      erros.estado = 'UF é obrigatória'
+  }
 
   return erros
 }
@@ -56,12 +68,12 @@ export function montarPayloadCliente(formulario) {
     email: formulario.email.trim() || null,
     tipoDocumento: formulario.tipoDocumento,
     documento: formulario.documento.trim(),
-    cep: formulario.cep.trim(),
-    logradouro: formulario.logradouro.trim(),
-    numero: formulario.numero.trim(),
+    cep: formulario.cep.trim() || null,
+    logradouro: formulario.logradouro.trim() || null,
+    numero: formulario.numero.trim() || null,
     complemento: formulario.complemento.trim() || null,
-    bairro: formulario.bairro.trim(),
-    cidade: formulario.cidade.trim(),
-    estado: formulario.estado.trim(),
+    bairro: formulario.bairro.trim() || null,
+    cidade: formulario.cidade.trim() || null,
+    estado: formulario.estado.trim() || null,
   }
 }

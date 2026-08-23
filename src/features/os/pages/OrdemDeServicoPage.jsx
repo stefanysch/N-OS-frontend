@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
+import ModalErro from '@/components/shared/ModalErro'
 
 import { statusOSParaPreset } from '@/utils/statusOS'
 
@@ -13,6 +14,7 @@ import { veiculoService } from '@/features/veiculos/services/veiculoService'
 import { clienteService } from '@/features/clientes/services/clienteService'
 
 import { formatarMoeda, formatarPlaca } from '@/utils/formatters'
+import { obterMensagemErro } from '@/utils/erros'
 
 export default function OrdemDeServicoPage() {
   const navigate = useNavigate()
@@ -22,17 +24,11 @@ export default function OrdemDeServicoPage() {
   const [clientesPorId, setClientesPorId] = useState({})
   const [busca, setBusca] = useState('')
 
-  const [carregando, setCarregando] =
-    useState(true)
-
-  const [erro, setErro] =
-    useState(null)
-
-  const [confirmacaoStatus, setConfirmacaoStatus] =
-    useState(null)
-
-  const [alterandoStatus, setAlterandoStatus] =
-    useState(false)
+  const [carregando, setCarregando] =useState(true)
+  const [erro, setErro] = useState(null)
+  const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
+  const [alterandoStatus, setAlterandoStatus] = useState(false)
+  const [erroAcao, setErroAcao] = useState(null)
 
   useEffect(() => {
     carregar()
@@ -93,8 +89,8 @@ export default function OrdemDeServicoPage() {
       }
 
       await carregar()
-    } catch {
-      setErro('Erro ao alterar status da ordem de serviço.')
+    } catch (erro) {
+      setErroAcao(obterMensagemErro(erro?.response?.data, 'Erro ao alterar status da ordem de serviço.'))
     } finally {
       setAlterandoStatus(false)
       setConfirmacaoStatus(null)
@@ -251,17 +247,21 @@ export default function OrdemDeServicoPage() {
 
                   <div className="flex items-center gap-2">
 
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => navigate(`/ordens/${ordem.id}/editar`)}
-                    >
-                      Editar
-                    </Button>
+                    {ordem.ativo && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate(`/ordens/${ordem.id}/editar`)}
+                        >
+                          Editar
+                        </Button>
 
-                    <span className="text-(--nos-border-2)">
-                      |
-                    </span>
+                        <span className="text-(--nos-border-2)">
+                          |
+                        </span>
+                      </>
+                    )}
 
                     <Button
                       size="sm"
@@ -322,6 +322,12 @@ export default function OrdemDeServicoPage() {
             ? 'danger'
             : 'secondary'
         }
+      />
+
+      <ModalErro
+        aberto={Boolean(erroAcao)}
+        mensagem={erroAcao}
+        onFechar={() => setErroAcao(null)}
       />
 
     </div>

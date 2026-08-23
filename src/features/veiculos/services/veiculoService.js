@@ -26,12 +26,12 @@ async function atualizar(id, dados) {
 }
 
 async function inativar(id) {
-  const resposta = await api.patch(`/veiculos/${id}/inativar`)
+  const resposta = await api.patch(`/veiculos/inativar/${id}`)
   return resposta.data
 }
 
 async function reativar(id) {
-  const resposta = await api.patch(`/veiculos/${id}/reativar`)
+  const resposta = await api.patch(`/veiculos/reativar/${id}`)
   return resposta.data
 }
 

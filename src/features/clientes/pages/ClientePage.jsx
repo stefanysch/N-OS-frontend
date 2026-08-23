@@ -5,12 +5,14 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
+import ModalErro from '@/components/shared/ModalErro'
 
 import ClienteModal from '../components/ClienteModal'
 import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
 
 import { clienteService } from '../services/clienteService'
 import { formatarDocumento, formatarTelefone } from '@/utils/formatters'
+import { obterMensagemErro } from '@/utils/erros'
 
 export default function ClientePage() {
 
@@ -32,6 +34,7 @@ export default function ClientePage() {
   // ─── confirmação de status ────────────────────────────────────────────────
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
+  const [erroAcao, setErroAcao] = useState(null)
 
   useEffect(() => {
     carregar()
@@ -73,7 +76,7 @@ export default function ClientePage() {
   // passo 2 concluído: veículo criado → vai pra nova OS com estado
   function aoConclurirWizard({ cliente, veiculo }) {
     setModalVeiculoAberto(false)
-    navigate('/os/nova', { state: { cliente, veiculo } })
+    navigate('/ordens/nova', { state: { cliente, veiculo } })
   }
 
   function abrirConfirmacao(cliente) {
@@ -97,8 +100,8 @@ export default function ClientePage() {
       }
 
       await carregar()
-    } catch {
-      setErro('Erro ao alterar status do cliente.')
+    } catch (erro) {
+      setErroAcao(obterMensagemErro(erro?.response?.data, 'Erro ao alterar status do cliente.'))
     } finally {
       setAlterandoStatus(false)
       setConfirmacaoStatus(null)
@@ -235,15 +238,19 @@ export default function ClientePage() {
                 <Badge status={cliente.ativo ? 'ativo' : 'inativo'} />
 
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => abrirEdicao(cliente)}
-                  >
-                    Editar
-                  </Button>
+                  {cliente.ativo && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => abrirEdicao(cliente)}
+                      >
+                        Editar
+                      </Button>
 
-                  <span className="text-(--nos-border-2)">|</span>
+                      <span className="text-(--nos-border-2)">|</span>
+                    </>
+                  )}
 
                   <Button
                     size="sm"
@@ -316,6 +323,12 @@ export default function ClientePage() {
             ? 'danger'
             : 'secondary'
         }
+      />
+
+      <ModalErro
+        aberto={Boolean(erroAcao)}
+        mensagem={erroAcao}
+        onFechar={() => setErroAcao(null)}
       />
 
     </div>

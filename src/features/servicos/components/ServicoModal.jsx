@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
 import { servicoService } from '../services/servicoService'
+import { obterMensagemErro } from '@/utils/erros'
 
 import {
   validarServico,
@@ -17,42 +18,16 @@ const FORMULARIO_VAZIO = {
   valor: ''
 }
 
-function obterMensagemErro(data) {
-  if (typeof data === 'string') {
-    return data
-  }
-
-  if (data?.errors) {
-    return Object.values(data.errors)
-      .flat()
-      .join('\n')
-  }
-
-  if (data?.title) {
-    return data.title
-  }
-
-  return 'Erro ao salvar serviço.'
-}
-
 export default function ServicoModal({
   aberto,
   onFechar,
   servicoEdicao,
   onSucesso
 }) {
-  const [formulario, setFormulario] =
-    useState(FORMULARIO_VAZIO)
-
-  const [erros, setErros] =
-    useState({})
-
-  const [salvando, setSalvando] =
-    useState(false)
-
-  const [mensagemErro, setMensagemErro] =
-    useState(null)
-
+  const [formulario, setFormulario] = useState(FORMULARIO_VAZIO)
+  const [erros, setErros] = useState({})
+  const [salvando, setSalvando] = useState(false)
+  const [mensagemErro, setMensagemErro] = useState(null)
   const editando = Boolean(servicoEdicao)
 
   useEffect(() => {
@@ -122,7 +97,8 @@ export default function ServicoModal({
 
       setMensagemErro(
         obterMensagemErro(
-          erro?.response?.data
+          erro?.response?.data,
+          'Erro ao salvar serviço.'
         )
       )
 

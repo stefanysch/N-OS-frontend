@@ -4,55 +4,36 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
+import ModalErro from '@/components/shared/ModalErro'
 
 import PecaModal from '../components/PecaModal'
 
 import { pecaService } from '../services/pecaService'
 
 import { formatarMoeda } from '@/utils/formatters'
+import { obterMensagemErro } from '@/utils/erros'
 
 export default function PecaPage() {
 
   const [pecas, setPecas] = useState([])
-
   const [busca, setBusca] = useState('')
-
-  const [carregando, setCarregando] =
-    useState(true)
-
-  const [erro, setErro] =
-    useState(null)
-
-  const [modalAberto,
-    setModalAberto] =
-    useState(false)
-
-  const [pecaEdicao,
-    setPecaEdicao] =
-    useState(null)
-
-  const [confirmacaoStatus,
-    setConfirmacaoStatus] =
-    useState(null)
-
-  const [alterandoStatus,
-    setAlterandoStatus] =
-    useState(false)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState(null)
+  const [modalAberto, setModalAberto] = useState(false)
+  const [pecaEdicao, setPecaEdicao] = useState(null)
+  const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
+  const [alterandoStatus, setAlterandoStatus] = useState(false)
+  const [erroAcao, setErroAcao] = useState(null)
 
   useEffect(() => {
-
     carregar()
-
   }, [])
 
   async function carregar() {
-
     setCarregando(true)
-
     setErro(null)
 
     try {
-
       const pecas =
         await pecaService.listar()
 
@@ -62,50 +43,37 @@ export default function PecaPage() {
           : []
       )
 
-    } catch {
-
+    } 
+    
+    catch (erro) {
       setErro(
         'Falha ao carregar peças.'
       )
 
     } finally {
-
       setCarregando(false)
-
     }
 
   }
 
   function abrirCriacao() {
-
     setPecaEdicao(null)
-
     setModalAberto(true)
-
   }
 
   function abrirEdicao(peca) {
-
     setPecaEdicao(peca)
-
     setModalAberto(true)
-
   }
 
   function abrirConfirmacao(peca) {
-
     setConfirmacaoStatus({
-
       id: peca.id,
-
       ativo: peca.ativo,
-
       mensagem: peca.ativo
         ? `Deseja inativar "${peca.nome}"?`
         : `Deseja reativar "${peca.nome}"?`
-
     })
-
   }
 
   async function confirmarAlteracaoStatus() {
@@ -129,19 +97,14 @@ export default function PecaPage() {
       }
 
       await carregar()
-
-    } catch {
-
-      setErro(
-        'Erro ao alterar status da peça.'
+    } catch (erro) {
+      setErroAcao(
+        obterMensagemErro(erro?.response?.data, 'Erro ao alterar status da peça.')
       )
 
     } finally {
-
       setAlterandoStatus(false)
-
       setConfirmacaoStatus(null)
-
     }
 
   }
@@ -313,17 +276,21 @@ export default function PecaPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => abrirEdicao(peca)}
-                  >
-                    Editar
-                  </Button>
+                  {peca.ativo && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => abrirEdicao(peca)}
+                      >
+                        Editar
+                      </Button>
 
-                  <span className="text-(--nos-text-faint)">
-                    |
-                  </span>
+                      <span className="text-(--nos-text-faint)">
+                        |
+                      </span>
+                    </>
+                  )}
 
                   <Button
                     size="sm"
@@ -409,6 +376,12 @@ export default function PecaPage() {
             ? 'danger'
             : 'secondary'
         }
+      />
+
+      <ModalErro
+        aberto={Boolean(erroAcao)}
+        mensagem={erroAcao}
+        onFechar={() => setErroAcao(null)}
       />
 
     </div>

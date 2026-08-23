@@ -7,6 +7,7 @@ import Stepper from '@/components/ui/Stepper'
 
 import { veiculoService } from '../services/veiculoService'
 import { clienteService } from '@/features/clientes/services/clienteService'
+import { obterMensagemErro } from '@/utils/erros'
 
 import {
   validarVeiculo,
@@ -43,13 +44,6 @@ function aplicarMaskAno(valor) {
   return valor.replace(/\D/g, '').slice(0, 4)
 }
 
-function obterMensagemErro(data) {
-  if (typeof data === 'string') return data
-  if (data?.errors) return Object.values(data.errors).flat().join('\n')
-  if (data?.title) return data.title
-  return 'Erro ao salvar veículo.'
-}
-
 export default function VeiculoModal({
   aberto,
   onFechar,
@@ -63,7 +57,6 @@ export default function VeiculoModal({
   const [erros, setErros] = useState({})
   const [salvando, setSalvando] = useState(false)
   const [mensagemErro, setMensagemErro] = useState(null)
-
   const editando = Boolean(veiculoEdicao)
   const modoWizard = Boolean(clienteWizard)
 
@@ -167,7 +160,7 @@ export default function VeiculoModal({
       }
     } catch (erro) {
       setMensagemErro(
-        obterMensagemErro(erro?.response?.data)
+        obterMensagemErro(erro?.response?.data, 'Erro ao salvar veículo.')
       )
     } finally {
       setSalvando(false)

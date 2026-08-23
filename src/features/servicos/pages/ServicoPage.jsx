@@ -4,46 +4,31 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
+import ModalErro from '@/components/shared/ModalErro'
 
 import ServicoModal from '../components/ServicoModal'
 
 import { servicoService } from '../services/servicoService'
 
 import { formatarMoeda } from '@/utils/formatters'
+import { obterMensagemErro } from '@/utils/erros'
 
 export default function ServicoPage() {
 
-  const [servicos, setServicos] =
-    useState([])
-
-  const [busca, setBusca] =
-    useState('')
-
-  const [carregando, setCarregando] =
-    useState(true)
-
-  const [erro, setErro] =
-    useState(null)
-
-  const [modalAberto, setModalAberto] =
-    useState(false)
-
-  const [servicoEdicao, setServicoEdicao] =
-    useState(null)
-
-  const [confirmacao, setConfirmacao] =
-    useState(null)
-
-  const [alterandoStatus, setAlterandoStatus] =
-    useState(false)
+  const [servicos, setServicos] = useState([])
+  const [busca, setBusca] = useState('')
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState(null)
+  const [modalAberto, setModalAberto] = useState(false)
+  const [servicoEdicao, setServicoEdicao] = useState(null)
+  const [confirmacao, setConfirmacao] = useState(null)
+  const [alterandoStatus, setAlterandoStatus] = useState(false)
+  const [erroAcao, setErroAcao] = useState(null)
 
   async function carregar() {
-
     setCarregando(true)
     setErro(null)
-
     try {
-
       const resposta =
         await servicoService.listar()
 
@@ -54,48 +39,33 @@ export default function ServicoPage() {
       )
 
     } catch {
-
       setErro(
         'Falha ao carregar serviços.'
       )
 
     } finally {
-
       setCarregando(false)
-
     }
   }
 
   useEffect(() => {
-
     carregar()
-
   }, [])
 
   function abrirCriacao() {
-
     setServicoEdicao(null)
-
     setModalAberto(true)
-
   }
 
   function abrirEdicao(servico) {
-
     setServicoEdicao(servico)
-
     setModalAberto(true)
-
   }
 
   function pedirConfirmacaoStatus(servico) {
-
     setConfirmacao({
-
       id: servico.id,
-
       ativo: servico.ativo,
-
       mensagem: servico.ativo
         ? `Deseja inativar "${servico.nome}"?`
         : `Deseja reativar "${servico.nome}"?`
@@ -104,39 +74,27 @@ export default function ServicoPage() {
   }
 
   async function alterarStatus() {
-
     setAlterandoStatus(true)
-
     try {
-
       if (confirmacao.ativo) {
-
         await servicoService.inativar(
           confirmacao.id
         )
 
       } else {
-
         await servicoService.reativar(
           confirmacao.id
         )
 
       }
-
       await carregar()
-
-    } catch {
-
-      alert(
-        'Erro ao alterar status do serviço.'
+    } catch (erro) {
+      setErroAcao(
+        obterMensagemErro(erro?.response?.data, 'Erro ao alterar status do serviço.')
       )
-
     } finally {
-
       setAlterandoStatus(false)
-
       setConfirmacao(null)
-
     }
   }
 
@@ -297,19 +255,23 @@ export default function ServicoPage() {
 
                 <div className="flex items-center gap-2">
 
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() =>
-                      abrirEdicao(servico)
-                    }
-                  >
-                    Editar
-                  </Button>
+                  {servico.ativo && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          abrirEdicao(servico)
+                        }
+                      >
+                        Editar
+                      </Button>
 
-                  <span className="text-(--nos-text-faint)">
-                    |
-                  </span>
+                      <span className="text-(--nos-text-faint)">
+                        |
+                      </span>
+                    </>
+                  )}
 
                   <Button
                     size="sm"
@@ -397,6 +359,12 @@ export default function ServicoPage() {
             ? 'danger'
             : 'secondary'
         }
+      />
+
+      <ModalErro
+        aberto={Boolean(erroAcao)}
+        mensagem={erroAcao}
+        onFechar={() => setErroAcao(null)}
       />
 
     </div>
