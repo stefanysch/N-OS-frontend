@@ -23,9 +23,8 @@ export default function ClientePage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
 
-  // ─── modal cliente ────────────────────────────────────────────────────────
+  // ─── modal cliente (criação) ──────────────────────────────────────────────
   const [modalClienteAberto, setModalClienteAberto] = useState(false)
-  const [clienteEdicao, setClienteEdicao] = useState(null)
 
   // ─── modal veículo (wizard) ───────────────────────────────────────────────
   const [modalVeiculoAberto, setModalVeiculoAberto] = useState(false)
@@ -56,14 +55,11 @@ export default function ClientePage() {
 
   // abre modal de criação — fluxo wizard
   function abrirCriacao() {
-    setClienteEdicao(null)
     setModalClienteAberto(true)
   }
 
-  // abre modal de edição — fluxo normal
-  function abrirEdicao(cliente) {
-    setClienteEdicao(cliente)
-    setModalClienteAberto(true)
+  function abrirDetalhe(cliente) {
+    navigate(`/clientes/${cliente.id}`)
   }
 
   // passo 1 concluído: cliente criado → abre modal de veículo
@@ -197,9 +193,10 @@ export default function ClientePage() {
             {clientesFiltrados.map((cliente, indice) => (
               <div
                 key={cliente.id}
+                onClick={() => abrirDetalhe(cliente)}
                 className={[
                   'grid grid-cols-[80px_1fr_140px_180px_100px_150px]',
-                  'items-center px-4 py-3 transition-colors hover:bg-(--nos-surface-2)',
+                  'cursor-pointer items-center px-4 py-3 transition-colors hover:bg-(--nos-surface-2)',
                   indice !== clientesFiltrados.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
@@ -237,20 +234,19 @@ export default function ClientePage() {
 
                 <Badge status={cliente.ativo ? 'ativo' : 'inativo'} />
 
-                <div className="flex items-center gap-2">
-                  {cliente.ativo && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => abrirEdicao(cliente)}
-                      >
-                        Editar
-                      </Button>
+                <div
+                  className="flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => abrirDetalhe(cliente)}
+                  >
+                    Editar
+                  </Button>
 
-                      <span className="text-(--nos-border-2)">|</span>
-                    </>
-                  )}
+                  <span className="text-(--nos-border-2)">|</span>
 
                   <Button
                     size="sm"
@@ -291,7 +287,6 @@ export default function ClientePage() {
       <ClienteModal
         aberto={modalClienteAberto}
         onFechar={() => setModalClienteAberto(false)}
-        clienteEdicao={clienteEdicao}
         onSucesso={carregar}
         onAvancar={aoAvancarParaVeiculo}
       />

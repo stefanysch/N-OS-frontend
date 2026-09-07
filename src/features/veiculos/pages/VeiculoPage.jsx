@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -15,13 +16,14 @@ import { obterMensagemErro } from '@/utils/erros'
 
 export default function VeiculoPage() {
 
+  const navigate = useNavigate()
+
   const [veiculos, setVeiculos] = useState([])
   const [clientesPorId, setClientesPorId] = useState({})
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
   const [modalAberto, setModalAberto] = useState(false)
-  const [veiculoEdicao, setVeiculoEdicao] = useState(null)
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
@@ -56,13 +58,11 @@ export default function VeiculoPage() {
   }
 
   function abrirCriacao() {
-    setVeiculoEdicao(null)
     setModalAberto(true)
   }
 
-  function abrirEdicao(veiculo) {
-    setVeiculoEdicao(veiculo)
-    setModalAberto(true)
+  function abrirDetalhe(veiculo) {
+    navigate(`/veiculos/${veiculo.id}`)
   }
 
   function abrirConfirmacao(veiculo) {
@@ -203,9 +203,10 @@ export default function VeiculoPage() {
             {veiculosFiltrados.map((veiculo, indice) => (
               <div
                 key={veiculo.id}
+                onClick={() => abrirDetalhe(veiculo)}
                 className={[
                   'grid grid-cols-[80px_1fr_120px_1fr_80px_100px_150px]',
-                  'items-center px-4 py-3',
+                  'cursor-pointer items-center px-4 py-3',
                   'transition-colors hover:bg-(--nos-surface-2)',
                   indice !== veiculosFiltrados.length - 1
                     ? 'border-b border-(--nos-border)'
@@ -260,23 +261,20 @@ export default function VeiculoPage() {
                   }
                 />
 
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
 
-                  {veiculo.ativo && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => abrirEdicao(veiculo)}
-                      >
-                        Editar
-                      </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => abrirDetalhe(veiculo)}
+                  >
+                    Editar
+                  </Button>
 
-                      <span className="text-(--nos-border-2)">
-                        |
-                      </span>
-                    </>
-                  )}
+                  <span className="text-(--nos-border-2)">|</span>
 
                   <Button
                     size="sm"
@@ -322,7 +320,6 @@ export default function VeiculoPage() {
       <VeiculoModal
         aberto={modalAberto}
         onFechar={() => setModalAberto(false)}
-        veiculoEdicao={veiculoEdicao}
         onSucesso={carregar}
       />
 

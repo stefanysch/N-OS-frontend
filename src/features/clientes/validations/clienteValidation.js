@@ -1,3 +1,31 @@
+export const TIPO_DOCUMENTO = [
+  { label: 'CPF', value: 1 },
+  { label: 'CNPJ', value: 2 },
+]
+
+export const CLIENTE_FORMULARIO_VAZIO = {
+  nome: '',
+  telefone: '',
+  email: '',
+  tipoDocumento: 1,
+  documento: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  estado: '',
+}
+
+// a API não devolve o tipo do documento, só o número — infere pela
+// quantidade de dígitos (11 = CPF, 14 = CNPJ) ao carregar um cliente
+// existente pra edição.
+export function inferirTipoDocumento(documento) {
+  const digitos = (documento ?? '').replace(/\D/g, '')
+  return digitos.length === 14 ? 2 : 1
+}
+
 export function validarCliente(formulario) {
   const erros = {}
 

@@ -1,3 +1,13 @@
+export const VEICULO_FORMULARIO_VAZIO = {
+  clienteId: '',
+  placa: '',
+  marca: '',
+  modelo: '',
+  ano: '',
+  cor: '',
+  chassi: '',
+}
+
 export function validarVeiculo(formulario, { modoWizard }) {
   const erros = {}
 

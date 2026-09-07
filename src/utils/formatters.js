@@ -60,6 +60,34 @@ export function formatarDocumento(documento, tipoDocumento) {
   return documento
 }
 
+export function formatarData(data) {
+  if (!data) return ''
+
+  const somenteData = /^\d{4}-\d{2}-\d{2}$/.test(String(data))
+
+  const instancia = somenteData
+    ? new Date(`${data}T00:00:00`)
+    : new Date(data)
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(instancia)
+}
+
+export function obterIniciais(texto) {
+  if (!texto) return ''
+
+  const palavras = texto.trim().split(/\s+/)
+
+  if (palavras.length === 1) {
+    return palavras[0].slice(0, 2).toUpperCase()
+  }
+
+  return (palavras[0][0] + palavras[palavras.length - 1][0]).toUpperCase()
+}
+
 export function formatarPlaca(placa) {
   if (!placa) return ''
 

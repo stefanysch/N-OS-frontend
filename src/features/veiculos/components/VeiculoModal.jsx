@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 
 import Modal from '@/components/ui/Modal'
-import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Stepper from '@/components/ui/Stepper'
+
+import VeiculoCampos from './VeiculoCampos'
 
 import { veiculoService } from '../services/veiculoService'
 import { clienteService } from '@/features/clientes/services/clienteService'
 import { obterMensagemErro } from '@/utils/erros'
 
 import {
+  VEICULO_FORMULARIO_VAZIO,
   validarVeiculo,
   montarPayloadVeiculo,
 } from '../validations/veiculoValidation'
@@ -19,45 +21,18 @@ const WIZARD_STEPS = [
   { id: 'veiculo', label: 'Veículo' },
 ]
 
-const FORMULARIO_VAZIO = {
-  clienteId: '',
-  placa: '',
-  marca: '',
-  modelo: '',
-  ano: '',
-  cor: '',
-  chassi: '',
-}
-
-function aplicarMaskPlaca(valor) {
-  const raw = valor
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, 7)
-
-  if (raw.length <= 3) return raw
-
-  return raw.slice(0, 3) + '-' + raw.slice(3)
-}
-
-function aplicarMaskAno(valor) {
-  return valor.replace(/\D/g, '').slice(0, 4)
-}
-
 export default function VeiculoModal({
   aberto,
   onFechar,
-  veiculoEdicao,
   clienteWizard,
   onSucesso,
   onConcluir,
 }) {
-  const [formulario, setFormulario] = useState(FORMULARIO_VAZIO)
+  const [formulario, setFormulario] = useState(VEICULO_FORMULARIO_VAZIO)
   const [clientes, setClientes] = useState([])
   const [erros, setErros] = useState({})
   const [salvando, setSalvando] = useState(false)
   const [mensagemErro, setMensagemErro] = useState(null)
-  const editando = Boolean(veiculoEdicao)
   const modoWizard = Boolean(clienteWizard)
 
   useEffect(() => {
@@ -66,57 +41,22 @@ export default function VeiculoModal({
     clienteService
       .listar()
       .then((d) =>
-        setClientes(
-          Array.isArray(d)
-            ? d.filter((c) => c.ativo)
-            : []
-        )
+        setClientes(Array.isArray(d) ? d.filter((c) => c.ativo) : [])
       )
       .catch(() => setClientes([]))
   }, [modoWizard])
 
   useEffect(() => {
-    if (editando) {
-      setFormulario({
-        clienteId: veiculoEdicao.clienteId ?? '',
-        placa: veiculoEdicao.placa ?? '',
-        marca: veiculoEdicao.marca ?? '',
-        modelo: veiculoEdicao.modelo ?? '',
-        ano: String(veiculoEdicao.ano ?? ''),
-        cor: veiculoEdicao.cor ?? '',
-        chassi: veiculoEdicao.chassi ?? '',
-      })
-    } else {
-      setFormulario(FORMULARIO_VAZIO)
-    }
-
+    setFormulario(VEICULO_FORMULARIO_VAZIO)
     setErros({})
     setMensagemErro(null)
-  }, [aberto, editando, veiculoEdicao])
+  }, [aberto])
 
-  function alterarCampo(e) {
-    const { name, value } = e.target
+  function alterarCliente(e) {
+    setFormulario((ant) => ({ ...ant, clienteId: e.target.value }))
 
-    let valorFinal = value
-
-    if (name === 'placa') {
-      valorFinal = aplicarMaskPlaca(value)
-    }
-
-    if (name === 'ano') {
-      valorFinal = aplicarMaskAno(value)
-    }
-
-    setFormulario((ant) => ({
-      ...ant,
-      [name]: valorFinal,
-    }))
-
-    if (erros[name]) {
-      setErros((ant) => ({
-        ...ant,
-        [name]: null,
-      }))
+    if (erros.clienteId) {
+      setErros((ant) => ({ ...ant, clienteId: null }))
     }
   }
 
@@ -136,27 +76,16 @@ export default function VeiculoModal({
     const payload = montarPayloadVeiculo(formulario, { modoWizard, clienteWizard })
 
     try {
-      if (editando) {
-        await veiculoService.atualizar(
-          veiculoEdicao.id,
-          payload
-        )
+      const veiculoCriado = await veiculoService.criar(payload)
 
+      if (onConcluir) {
+        onConcluir({
+          cliente: clienteWizard,
+          veiculo: veiculoCriado,
+        })
+      } else {
         onSucesso()
         onFechar()
-      } else {
-        const veiculoCriado =
-          await veiculoService.criar(payload)
-
-        if (onConcluir) {
-          onConcluir({
-            cliente: clienteWizard,
-            veiculo: veiculoCriado,
-          })
-        } else {
-          onSucesso()
-          onFechar()
-        }
       }
     } catch (erro) {
       setMensagemErro(
@@ -171,36 +100,21 @@ export default function VeiculoModal({
     <Modal
       aberto={aberto}
       onFechar={onFechar}
-      titulo={
-        editando
-          ? '// EDITAR VEÍCULO'
-          : '// NOVO VEÍCULO'
-      }
+      titulo="// NOVO VEÍCULO"
       subtitulo="N-OS"
-      badge={
-        editando
-          ? `#${String(veiculoEdicao.id).padStart(4, '0')}`
-          : undefined
-      }
       size="md"
     >
       <Modal.Body>
 
-        {!editando && (
-          <div className="mb-5 border border-(--nos-border) bg-(--nos-surface) px-4 py-3">
-            <Stepper
-              steps={WIZARD_STEPS}
-              currentStep="veiculo"
-              completedSteps={
-                modoWizard
-                  ? ['cliente']
-                  : []
-              }
-            />
-          </div>
-        )}
+        <div className="mb-5 border border-(--nos-border) bg-(--nos-surface) px-4 py-3">
+          <Stepper
+            steps={WIZARD_STEPS}
+            currentStep="veiculo"
+            completedSteps={modoWizard ? ['cliente'] : []}
+          />
+        </div>
 
-        {modoWizard && !editando ? (
+        {modoWizard ? (
           <div className="mb-4 flex items-center gap-3 border border-(--nos-success)/20 bg-(--nos-success)/5 px-3 py-2">
 
             <span className="font-data text-[10px] uppercase tracking-widest text-(--nos-success)/60">
@@ -216,7 +130,7 @@ export default function VeiculoModal({
             </span>
 
           </div>
-        ) : !editando ? (
+        ) : (
           <div className="mb-4">
 
             <label className="mb-1 block font-data text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)">
@@ -227,7 +141,7 @@ export default function VeiculoModal({
             <select
               name="clienteId"
               value={formulario.clienteId}
-              onChange={alterarCampo}
+              onChange={alterarCliente}
               className={[
                 'w-full border bg-(--nos-surface) px-3 py-2 font-data text-xs text-(--nos-text) focus:outline-none',
                 erros.clienteId
@@ -235,15 +149,10 @@ export default function VeiculoModal({
                   : 'border-(--nos-border-2) focus:border-(--nos-red)',
               ].join(' ')}
             >
-              <option value="">
-                Selecione um cliente...
-              </option>
+              <option value="">Selecione um cliente...</option>
 
               {clientes.map((c) => (
-                <option
-                  key={c.id}
-                  value={c.id}
-                >
+                <option key={c.id} value={c.id}>
                   #{String(c.id).padStart(4, '0')} — {c.nome}
                 </option>
               ))}
@@ -256,77 +165,19 @@ export default function VeiculoModal({
             )}
 
           </div>
-        ) : null}
+        )}
 
-        <Input
-          label="// PLACA"
-          name="placa"
-          value={formulario.placa}
-          onChange={alterarCampo}
-          placeholder="ABC-1234"
-          error={erros.placa}
-          required
-        />
-
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="// MARCA"
-            name="marca"
-            value={formulario.marca}
-            onChange={alterarCampo}
-            placeholder="Honda, Yamaha, Suzuki..."
-            error={erros.marca}
-            required
-          />
-
-          <Input
-            label="// MODELO"
-            name="modelo"
-            value={formulario.modelo}
-            onChange={alterarCampo}
-            placeholder="CG 160, Factor 150..."
-            error={erros.modelo}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-[120px_1fr] gap-3">
-          <Input
-            label="// ANO"
-            name="ano"
-            value={formulario.ano}
-            onChange={alterarCampo}
-            placeholder="2024"
-            error={erros.ano}
-            required
-          />
-
-          <Input
-            label="// COR"
-            name="cor"
-            value={formulario.cor}
-            onChange={alterarCampo}
-            placeholder="Preta, Vermelha... (opcional)"
-            error={erros.cor}
-          />
-        </div>
-
-        <Input
-          label="// CHASSI"
-          name="chassi"
-          value={formulario.chassi}
-          onChange={alterarCampo}
-          placeholder="Opcional"
-          error={erros.chassi}
+        <VeiculoCampos
+          formulario={formulario}
+          setFormulario={setFormulario}
+          erros={erros}
+          setErros={setErros}
         />
 
         {mensagemErro && (
           <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-2">
             {mensagemErro.split('\n').map((msg, i) => (
-              <p
-                key={i}
-                className="font-data text-xs text-(--nos-red)"
-              >
+              <p key={i} className="font-data text-xs text-(--nos-red)">
                 {msg}
               </p>
             ))}
@@ -345,16 +196,12 @@ export default function VeiculoModal({
         </Button>
 
         <Button
-          variant={editando ? 'secondary' : 'primary'}
+          variant="primary"
           type="submit"
           loading={salvando}
           onClick={salvar}
         >
-          {editando
-            ? 'Salvar alterações'
-            : modoWizard
-              ? 'Concluir e Abrir OS →'
-              : '+ Cadastrar'}
+          {modoWizard ? 'Concluir e Abrir OS →' : '+ Cadastrar'}
         </Button>
       </Modal.Footer>
 
