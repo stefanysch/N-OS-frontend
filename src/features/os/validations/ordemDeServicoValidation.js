@@ -44,14 +44,26 @@ export function validarOrdemDeServico({
   itens,
   desconto,
   subtotal,
+  // lista de veículos do cliente selecionado — quando informada, valida
+  // que o veículo escolhido realmente pertence a esse cliente.
+  veiculosDoCliente,
 }) {
   const erros = {}
 
   if (!clienteId)
     erros.clienteId = 'Selecione um cliente'
 
-  if (!veiculoId)
+  if (!veiculoId) {
     erros.veiculoId = 'Selecione um veículo'
+  } else if (
+    Array.isArray(veiculosDoCliente) &&
+    veiculosDoCliente.length > 0 &&
+    !veiculosDoCliente.some(
+      (veiculo) => String(veiculo.id) === String(veiculoId)
+    )
+  ) {
+    erros.veiculoId = 'O veículo selecionado não pertence a este cliente'
+  }
 
   if (!descricaoProblema.trim())
     erros.descricaoProblema = 'Descreva o problema'

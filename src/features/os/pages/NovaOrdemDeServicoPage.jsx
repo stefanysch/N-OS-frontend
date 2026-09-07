@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
+import SelectBuscavel from '@/components/ui/SelectBuscavel'
 
 import ClienteModal from '@/features/clientes/components/ClienteModal'
 import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
@@ -20,6 +21,7 @@ import {
 } from '../validations/ordemDeServicoValidation'
 
 import { STATUS_OS, obterStatus } from '@/utils/statusOS'
+import { obterMensagemErro } from '@/utils/erros'
 
 import {
   ITEM_VAZIO,
@@ -32,12 +34,24 @@ export default function NovaOrdemDeServicoPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // o contexto do fluxo guiado vive só no state de navegação (em memória).
+  // Um F5 descarta esse state de propósito: o usuário recomeça do zero,
+  // com cliente e veículo vazios.
   const wizardState = location.state ?? {}
+
+  // quando o usuário chega aqui pelo fluxo guiado (cadastro de cliente ->
+  // veículo -> OS), cliente e veículo já vêm definidos e NÃO podem ser
+  // trocados nem cadastrados de novo por modal nesta tela.
+  const origemWizard = Boolean(
+    wizardState.cliente?.id && wizardState.veiculo?.id
+  )
 
   const [clientes, setClientes] = useState([])
   const [veiculos, setVeiculos] = useState([])
   const [pecas, setPecas] = useState([])
   const [servicos, setServicos] = useState([])
+  const [veiculosCarregando, setVeiculosCarregando] = useState(false)
+  const [erroCarregamento, setErroCarregamento] = useState(null)
   const [clienteId, setClienteId] = useState(
     wizardState.cliente?.id ?? ''
   )
@@ -88,12 +102,27 @@ export default function NovaOrdemDeServicoPage() {
 
 
   useEffect(() => {
-    if (clienteId) {
-      carregarVeiculos(clienteId)
-    } else {
-      setVeiculos([])
-    }
+    carregarVeiculos(clienteId)
   }, [clienteId])
+
+
+  async function carregarBase() {
+    setErroCarregamento(null)
+
+    await Promise.all([
+      carregarClientes(),
+      carregarPecas(),
+      carregarServicos(),
+    ])
+  }
+
+  async function tentarCarregarNovamente() {
+    await carregarBase()
+
+    if (clienteId) {
+      await carregarVeiculos(clienteId)
+    }
+  }
 
 
   async function carregarClientes() {
@@ -108,12 +137,25 @@ export default function NovaOrdemDeServicoPage() {
             )
           : []
       )
-    } catch {
+    } catch (erro) {
+      setErroCarregamento(
+        obterMensagemErro(
+          erro?.response?.data,
+          'Falha ao carregar a lista de clientes.'
+        )
+      )
     }
   }
 
 
   async function carregarVeiculos(id) {
+    if (!id) {
+      setVeiculos([])
+      return
+    }
+
+    setVeiculosCarregando(true)
+
     try {
       const dados =
         await veiculoService.listarPorCliente(id)
@@ -125,7 +167,16 @@ export default function NovaOrdemDeServicoPage() {
             )
           : []
       )
-    } catch {
+    } catch (erro) {
+      setVeiculos([])
+      setErroCarregamento(
+        obterMensagemErro(
+          erro?.response?.data,
+          'Falha ao carregar os veículos do cliente.'
+        )
+      )
+    } finally {
+      setVeiculosCarregando(false)
     }
   }
 
@@ -142,7 +193,13 @@ export default function NovaOrdemDeServicoPage() {
             )
           : []
       )
-    } catch {
+    } catch (erro) {
+      setErroCarregamento(
+        obterMensagemErro(
+          erro?.response?.data,
+          'Falha ao carregar a lista de peças.'
+        )
+      )
     }
   }
 
@@ -159,7 +216,13 @@ export default function NovaOrdemDeServicoPage() {
             )
           : []
       )
-    } catch {
+    } catch (erro) {
+      setErroCarregamento(
+        obterMensagemErro(
+          erro?.response?.data,
+          'Falha ao carregar a lista de serviços.'
+        )
+      )
     }
   }
 
@@ -229,6 +292,13 @@ export default function NovaOrdemDeServicoPage() {
   }
 
   async function salvar() {
+    if (veiculosCarregando) {
+      setErroGeral(
+        'Aguarde o carregamento dos veículos do cliente.'
+      )
+      return
+    }
+
     const subtotal = calcularSubtotalItens(itens)
 
     const errosValidacao = validarOrdemDeServico({
@@ -238,6 +308,7 @@ export default function NovaOrdemDeServicoPage() {
       itens,
       desconto,
       subtotal,
+      veiculosDoCliente: veiculos,
     })
 
     if (Object.keys(errosValidacao).length > 0) {
@@ -247,6 +318,31 @@ export default function NovaOrdemDeServicoPage() {
 
     setSalvando(true)
     setErroGeral(null)
+
+    // o backend só recebe o VeiculoId e deriva o cliente de Veiculo.Cliente,
+    // então nunca acusa "veículo de outro cliente" — a OS sempre nasce
+    // coerente com o dono real do veículo. Essa checagem client-side é a
+    // única defesa contra abrir a OS para um cliente diferente do que está
+    // na tela (ex.: veiculoId defasado após trocar de cliente).
+    try {
+      const veiculoSelecionado =
+        await veiculoService.buscarPorId(veiculoId)
+
+      if (
+        String(veiculoSelecionado?.clienteId) !==
+        String(clienteId)
+      ) {
+        setErros({
+          veiculoId:
+            'O veículo selecionado não pertence a este cliente',
+        })
+        setSalvando(false)
+        return
+      }
+    } catch {
+      // não foi possível revalidar agora — segue e deixa o backend
+      // aceitar/recusar pelas regras dele (veículo existe/ativo, etc.)
+    }
 
     const payload = montarPayloadOrdemDeServico({
       veiculoId,
@@ -265,8 +361,10 @@ export default function NovaOrdemDeServicoPage() {
       navigate('/ordens')
     } catch (erro) {
       setErroGeral(
-        erro?.response?.data?.message ??
-        'Erro ao abrir ordem de serviço.'
+        obterMensagemErro(
+          erro?.response?.data,
+          'Erro ao abrir ordem de serviço.'
+        )
       )
     } finally {
       setSalvando(false)
@@ -335,6 +433,22 @@ export default function NovaOrdemDeServicoPage() {
           </div>
         )}
 
+        {erroCarregamento && (
+          <div className="mb-6 flex items-center justify-between gap-4 border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-3">
+            <p className="text-xs text-(--nos-red)">
+              {erroCarregamento}
+            </p>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={tentarCarregarNovamente}
+            >
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
           <div className="space-y-6">
@@ -346,6 +460,53 @@ export default function NovaOrdemDeServicoPage() {
               </p>
 
               <div className="space-y-5 border border-(--nos-border) bg-(--nos-surface) p-5">
+
+                {origemWizard ? (
+
+                  <>
+
+                    <div className="grid grid-cols-2 gap-4">
+
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)">
+                          // CLIENTE
+                        </p>
+                        <p className="mt-1 text-xs text-(--nos-text)">
+                          {wizardState.cliente.nome}
+                        </p>
+                        <p className="text-[10px] text-(--nos-text-muted)">
+                          #{String(wizardState.cliente.id).padStart(4, '0')}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)">
+                          // VEÍCULO
+                        </p>
+                        <p className="mt-1 text-xs text-(--nos-text)">
+                          {wizardState.veiculo.placa}
+                          {' — '}
+                          {wizardState.veiculo.marca}
+                          {' '}
+                          {wizardState.veiculo.modelo}
+                        </p>
+                        <p className="text-[10px] text-(--nos-text-muted)">
+                          {wizardState.veiculo.ano}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <p className="text-[10px] text-(--nos-text-faint)">
+                      Cliente e veículo definidos no cadastro guiado e não
+                      podem ser alterados nesta OS.
+                    </p>
+
+                  </>
+
+                ) : (
+
+                  <>
 
                 <div>
 
@@ -370,33 +531,21 @@ export default function NovaOrdemDeServicoPage() {
 
                   </div>
 
-                  <select
+                  <SelectBuscavel
+                    id="cliente"
                     value={clienteId}
-                    onChange={(e) => {
-                      setClienteId(
-                        e.target.value
-                      )
+                    onChange={(valor) => {
+                      setClienteId(valor)
                       setVeiculoId('')
                     }}
-                    className="w-full border border-(--nos-border-2) bg-(--nos-bg) px-3 py-2 font-mono text-xs text-(--nos-text) focus:border-(--nos-red) focus:outline-none"
-                  >
-
-                    <option value="">
-                      Selecione um cliente...
-                    </option>
-
-                    {clientes.map((cliente) => (
-                      <option
-                        key={cliente.id}
-                        value={cliente.id}
-                      >
-                        #{String(cliente.id).padStart(4, '0')}
-                        {' — '}
-                        {cliente.nome}
-                      </option>
-                    ))}
-
-                  </select>
+                    options={clientes.map((cliente) => ({
+                      value: cliente.id,
+                      label: `#${String(cliente.id).padStart(4, '0')} — ${cliente.nome}`,
+                    }))}
+                    placeholder="Buscar cliente..."
+                    semResultadoTexto="Nenhum cliente encontrado"
+                    className="w-full border border-(--nos-border-2) bg-(--nos-bg) px-3 py-2 font-mono text-xs text-(--nos-text)"
+                  />
 
                   {erros.clienteId && (
                     <p className="mt-1 text-[11px] text-(--nos-red)">
@@ -429,40 +578,24 @@ export default function NovaOrdemDeServicoPage() {
 
                   </div>
 
-                  <select
+                  <SelectBuscavel
                     value={veiculoId}
-                    onChange={(e) =>
-                      setVeiculoId(
-                        e.target.value
-                      )
+                    onChange={setVeiculoId}
+                    disabled={!clienteId || veiculosCarregando}
+                    options={veiculos.map((veiculo) => ({
+                      value: veiculo.id,
+                      label: `${veiculo.placa} — ${veiculo.marca} ${veiculo.modelo} (${veiculo.ano})`,
+                    }))}
+                    placeholder={
+                      !clienteId
+                        ? 'Selecione um cliente primeiro'
+                        : veiculosCarregando
+                          ? 'Carregando veículos...'
+                          : 'Buscar veículo...'
                     }
-                    disabled={!clienteId}
-                    className="w-full border border-(--nos-border-2) bg-(--nos-bg) px-3 py-2 font-mono text-xs text-(--nos-text) focus:border-(--nos-red) focus:outline-none disabled:opacity-30"
-                  >
-
-                    <option value="">
-                      {clienteId
-                        ? 'Selecione um veículo...'
-                        : 'Selecione um cliente primeiro'}
-                    </option>
-
-                    {veiculos.map((veiculo) => (
-                      <option
-                        key={veiculo.id}
-                        value={veiculo.id}
-                      >
-                        {veiculo.placa}
-                        {' — '}
-                        {veiculo.marca}
-                        {' '}
-                        {veiculo.modelo}
-                        {' ('}
-                        {veiculo.ano}
-                        {')'}
-                      </option>
-                    ))}
-
-                  </select>
+                    semResultadoTexto="Nenhum veículo encontrado"
+                    className="w-full border border-(--nos-border-2) bg-(--nos-bg) px-3 py-2 font-mono text-xs text-(--nos-text)"
+                  />
 
                   {erros.veiculoId && (
                     <p className="mt-1 text-[11px] text-(--nos-red)">
@@ -471,6 +604,10 @@ export default function NovaOrdemDeServicoPage() {
                   )}
 
                 </div>
+
+                  </>
+
+                )}
 
                 <div>
 
@@ -735,75 +872,43 @@ export default function NovaOrdemDeServicoPage() {
 
                                 {item.tipo === 'peca' ? (
 
-                                  <select
+                                  <SelectBuscavel
                                     value={item.pecaId}
-                                    onChange={(e) =>
+                                    onChange={(valor) =>
                                       alterarItem(
                                         index,
                                         'pecaId',
-                                        e.target.value
+                                        valor
                                       )
                                     }
-                                    className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text) focus:border-(--nos-red) focus:outline-none"
-                                  >
-
-                                    <option value="">
-                                      Selecione uma peça...
-                                    </option>
-
-                                    {pecas.map(
-                                      (peca) => (
-                                        <option
-                                          key={
-                                            peca.id
-                                          }
-                                          value={
-                                            peca.id
-                                          }
-                                        >
-                                          {peca.nome}
-                                        </option>
-                                      )
-                                    )}
-
-                                  </select>
+                                    options={pecas.map((peca) => ({
+                                      value: peca.id,
+                                      label: peca.nome,
+                                    }))}
+                                    placeholder="Buscar peça..."
+                                    semResultadoTexto="Nenhuma peça encontrada"
+                                    className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text)"
+                                  />
 
                                 ) : (
 
-                                  <select
-                                    value={
-                                      item.servicoId
-                                    }
-                                    onChange={(e) =>
+                                  <SelectBuscavel
+                                    value={item.servicoId}
+                                    onChange={(valor) =>
                                       alterarItem(
                                         index,
                                         'servicoId',
-                                        e.target.value
+                                        valor
                                       )
                                     }
-                                    className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text) focus:border-(--nos-red) focus:outline-none"
-                                  >
-
-                                    <option value="">
-                                      Selecione um serviço...
-                                    </option>
-
-                                    {servicos.map(
-                                      (servico) => (
-                                        <option
-                                          key={
-                                            servico.id
-                                          }
-                                          value={
-                                            servico.id
-                                          }
-                                        >
-                                          {servico.nome}
-                                        </option>
-                                      )
-                                    )}
-
-                                  </select>
+                                    options={servicos.map((servico) => ({
+                                      value: servico.id,
+                                      label: servico.nome,
+                                    }))}
+                                    placeholder="Buscar serviço..."
+                                    semResultadoTexto="Nenhum serviço encontrado"
+                                    className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text)"
+                                  />
 
                                 )}
 
@@ -1010,52 +1115,71 @@ export default function NovaOrdemDeServicoPage() {
 
       </div>
 
-      <ClienteModal
-        aberto={modalCliente}
-        onFechar={() =>
-          setModalCliente(false)
-        }
-        onSucesso={async (
-          clienteCriado
-        ) => {
-
-          await carregarClientes()
-
-          if (clienteCriado?.id) {
-            setClienteId(
-              clienteCriado.id
-            )
+      {!origemWizard && (
+        <ClienteModal
+          aberto={modalCliente}
+          onFechar={() =>
+            setModalCliente(false)
           }
+          onSucesso={async (
+            clienteCriado
+          ) => {
 
-          setModalCliente(false)
-        }}
-      />
+            await carregarClientes()
+
+            if (clienteCriado?.id) {
+              setClienteId(
+                clienteCriado.id
+              )
+              // troca de cliente: o veículo do cliente anterior não
+              // pertence ao novo, então precisa ser limpo.
+              setVeiculoId('')
+            }
+
+            setModalCliente(false)
+          }}
+        />
+      )}
 
 
-      <VeiculoModal
-        aberto={modalVeiculo}
-        onFechar={() =>
-          setModalVeiculo(false)
-        }
-        onSucesso={async (
-          veiculoCriado
-        ) => {
-
-          if (clienteId) {
-            await carregarVeiculos(
-              clienteId
-            )
+      {!origemWizard && (
+        <VeiculoModal
+          aberto={modalVeiculo}
+          onFechar={() =>
+            setModalVeiculo(false)
           }
+          onSucesso={async (
+            veiculoCriado
+          ) => {
 
-          if (veiculoCriado?.id) {
-            setVeiculoId(
-              veiculoCriado.id
-            )
-          }
+            // o veículo pode ter sido cadastrado para um cliente
+            // diferente do que está selecionado na OS — alinha os dois
+            // para nunca gravar veículo de outro cliente.
+            const donoId =
+              veiculoCriado?.clienteId ?? clienteId
 
-          setModalVeiculo(false)
-        }}
-      />
+            if (
+              donoId &&
+              String(donoId) !== String(clienteId)
+            ) {
+              await carregarClientes()
+              setClienteId(String(donoId))
+            }
+
+            if (donoId) {
+              await carregarVeiculos(donoId)
+            }
+
+            if (veiculoCriado?.id) {
+              setVeiculoId(
+                veiculoCriado.id
+              )
+            }
+
+            setModalVeiculo(false)
+          }}
+        />
+      )}
 
 
       <PecaModal

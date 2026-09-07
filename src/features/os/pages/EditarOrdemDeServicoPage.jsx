@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
+import SelectBuscavel from '@/components/ui/SelectBuscavel'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 
 import PecaModal from '@/features/pecas/components/PecaModal'
@@ -267,6 +268,15 @@ export default function EditarOrdemDeServicoPage() {
         </div>
 
         <div className="flex items-center gap-3">
+
+          <Button
+            variant="ghost"
+            onClick={() =>
+              window.open(`/ordens/${id}/imprimir`, '_blank')
+            }
+          >
+            Gerar PDF
+          </Button>
 
           <Button
             variant="ghost"
@@ -568,27 +578,29 @@ export default function EditarOrdemDeServicoPage() {
                           <div className="min-w-0">
 
                             {item.tipo === 'peca' ? (
-                              <select
+                              <SelectBuscavel
                                 value={item.pecaId}
-                                onChange={(e) => alterarItem(index, 'pecaId', e.target.value)}
-                                className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text) focus:border-(--nos-red) focus:outline-none"
-                              >
-                                <option value="">Selecione uma peça...</option>
-                                {pecas.map((peca) => (
-                                  <option key={peca.id} value={peca.id}>{peca.nome}</option>
-                                ))}
-                              </select>
+                                onChange={(valor) => alterarItem(index, 'pecaId', valor)}
+                                options={pecas.map((peca) => ({
+                                  value: peca.id,
+                                  label: peca.nome,
+                                }))}
+                                placeholder="Buscar peça..."
+                                semResultadoTexto="Nenhuma peça encontrada"
+                                className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text)"
+                              />
                             ) : (
-                              <select
+                              <SelectBuscavel
                                 value={item.servicoId}
-                                onChange={(e) => alterarItem(index, 'servicoId', e.target.value)}
-                                className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text) focus:border-(--nos-red) focus:outline-none"
-                              >
-                                <option value="">Selecione um serviço...</option>
-                                {servicos.map((servico) => (
-                                  <option key={servico.id} value={servico.id}>{servico.nome}</option>
-                                ))}
-                              </select>
+                                onChange={(valor) => alterarItem(index, 'servicoId', valor)}
+                                options={servicos.map((servico) => ({
+                                  value: servico.id,
+                                  label: servico.nome,
+                                }))}
+                                placeholder="Buscar serviço..."
+                                semResultadoTexto="Nenhum serviço encontrado"
+                                className="h-[34px] w-full border border-(--nos-border-2) bg-(--nos-bg) px-2 font-mono text-[10px] text-(--nos-text)"
+                              />
                             )}
 
                             <div className="mt-1 flex items-center justify-between">
