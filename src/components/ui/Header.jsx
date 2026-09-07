@@ -2,6 +2,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 
 import LogoSvg from '@/assets/n-os.svg'
+import {
+  aoAtualizarUsuarioLocal,
+  lerUsuarioLocal,
+  removerUsuarioLocal,
+} from '@/utils/usuarioLocal'
 
 const IconSun = () => (
   <svg
@@ -84,6 +89,13 @@ export default function Header() {
   const [menuPerfilAberto, setMenuPerfilAberto] =
     useState(false)
 
+  const [usuario, setUsuario] =
+    useState(lerUsuarioLocal)
+
+  useEffect(() => {
+    return aoAtualizarUsuarioLocal(setUsuario)
+  }, [])
+
   const [tema, setTema] = useState(() => {
     return localStorage.getItem('nos-tema') ?? 'dark'
   })
@@ -153,6 +165,7 @@ export default function Header() {
   function logout() {
 
     localStorage.removeItem('nos-token')
+    removerUsuarioLocal()
 
     setMenuPerfilAberto(false)
 
@@ -324,7 +337,7 @@ export default function Header() {
                 tracking-widest
               "
             >
-              Usuário
+              {usuario?.nome ?? 'Usuário'}
             </span>
 
             <IconChevron />
@@ -373,7 +386,7 @@ export default function Header() {
                     text-(--nos-text)
                   "
                 >
-                  Usuário
+                  {usuario?.nome ?? 'Usuário'}
                 </p>
 
                 <p
@@ -384,7 +397,7 @@ export default function Header() {
                     text-(--nos-text-muted)
                   "
                 >
-                  usuário@nos.com
+                  {usuario?.email ?? ''}
                 </p>
 
               </div>
@@ -410,6 +423,30 @@ export default function Header() {
                 "
               >
                 Meu perfil
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuPerfilAberto(false)
+                  navigate('/empresa')
+                }}
+                className="
+                  w-full
+                  border-t border-(--nos-border)
+                  px-4 py-3
+                  text-left
+                  font-ui
+                  text-[11px]
+                  uppercase
+                  tracking-widest
+                  text-(--nos-text-muted)
+                  transition-colors duration-150
+                  hover:bg-(--nos-surface-2)
+                  hover:text-(--nos-text)
+                "
+              >
+                Perfil da empresa
               </button>
 
               <button

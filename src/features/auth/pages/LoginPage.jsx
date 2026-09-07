@@ -7,6 +7,7 @@ import logo from '@/assets/n-os.svg'
 
 import { validarLogin } from '@/features/auth/validations/authValidation'
 import { authService } from '@/features/auth/services/authService'
+import { salvarUsuarioLocal } from '@/utils/usuarioLocal'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -34,6 +35,12 @@ export default function LoginPage() {
       const resposta = await authService.login({ email, senha })
 
       localStorage.setItem('nos-token', resposta.token)
+
+      salvarUsuarioLocal({
+        id: resposta.usuarioId,
+        nome: resposta.nome,
+        email: resposta.email,
+      })
 
       navigate('/')
     } catch (erro) {
