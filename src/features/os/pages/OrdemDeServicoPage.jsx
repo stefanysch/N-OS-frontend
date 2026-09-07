@@ -212,9 +212,10 @@ export default function OrdemDeServicoPage() {
               return (
                 <div
                   key={ordem.id}
+                  onClick={() => navigate(`/ordens/${ordem.id}/editar`)}
                   className={[
                     'grid grid-cols-[80px_1fr_1fr_2fr_140px_110px_150px]',
-                    'items-center px-4 py-3',
+                    'cursor-pointer items-center px-4 py-3',
                     'transition-colors hover:bg-(--nos-surface-2)',
                     indice !== ordensFiltradas.length - 1
                       ? 'border-b border-(--nos-border)'
@@ -245,7 +246,10 @@ export default function OrdemDeServicoPage() {
                     {formatarMoeda(ordem.valorTotal)}
                   </span>
 
-                  <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
 
                     {ordem.ativo && (
                       <>
