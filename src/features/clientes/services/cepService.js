@@ -1,5 +1,7 @@
+import { somenteDigitos } from '@/utils/masks'
+
 async function buscarEndereco(cep) {
-  const digitos = cep.replace(/\D/g, '')
+  const digitos = somenteDigitos(cep)
 
   if (digitos.length !== 8) {
     return null

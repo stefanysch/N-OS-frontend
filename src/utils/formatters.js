@@ -1,3 +1,12 @@
+import {
+  aplicarMaskDocumento,
+  aplicarMaskPlaca,
+  aplicarMaskTelefone,
+  somenteDigitos,
+  TAMANHO_CNPJ,
+  TAMANHO_CPF,
+} from './masks'
+
 export function formatarMoeda(valor) {
   return new Intl.NumberFormat(
     'pt-BR',
@@ -11,53 +20,21 @@ export function formatarMoeda(valor) {
 export function formatarTelefone(telefone) {
   if (!telefone) return ''
 
-  const numeros = telefone.replace(/\D/g, '')
+  const tamanho = somenteDigitos(telefone).length
 
-  if (numeros.length === 11) {
-    return numeros.replace(
-      /^(\d{2})(\d{5})(\d{4})$/,
-      '($1) $2-$3'
-    )
-  }
+  if (tamanho !== 10 && tamanho !== 11) return telefone
 
-  if (numeros.length === 10) {
-    return numeros.replace(
-      /^(\d{2})(\d{4})(\d{4})$/,
-      '($1) $2-$3'
-    )
-  }
-
-  return telefone
+  return aplicarMaskTelefone(telefone)
 }
 
-export function formatarDocumento(documento, tipoDocumento) {
+export function formatarDocumento(documento) {
   if (!documento) return ''
 
-  const numeros = documento.replace(/\D/g, '')
+  const tamanho = somenteDigitos(documento).length
 
-  if (
-    tipoDocumento === 'CPF' ||
-    tipoDocumento === 1 ||
-    numeros.length === 11
-  ) {
-    return numeros.replace(
-      /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
-      '$1.$2.$3-$4'
-    )
-  }
+  if (tamanho !== TAMANHO_CPF && tamanho !== TAMANHO_CNPJ) return documento
 
-  if (
-    tipoDocumento === 'CNPJ' ||
-    tipoDocumento === 2 ||
-    numeros.length === 14
-  ) {
-    return numeros.replace(
-      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-      '$1.$2.$3/$4-$5'
-    )
-  }
-
-  return documento
+  return aplicarMaskDocumento(documento)
 }
 
 export function formatarData(data) {
@@ -91,16 +68,13 @@ export function obterIniciais(texto) {
 export function formatarPlaca(placa) {
   if (!placa) return ''
 
-  const valor = placa
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
+  return aplicarMaskPlaca(placa)
+}
 
-  if (valor.length === 7) {
-    return valor.replace(
-      /^([A-Z]{3})(\d{4})$/,
-      '$1-$2'
-    )
-  }
+export function formatarVeiculo(veiculo) {
+  if (!veiculo) return ''
 
-  return placa.toUpperCase()
+  const descricao = `${veiculo.marca} ${veiculo.modelo}`
+
+  return veiculo.ano ? `${descricao} (${veiculo.ano})` : descricao
 }

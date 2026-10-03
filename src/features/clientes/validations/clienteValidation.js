@@ -1,13 +1,28 @@
+import {
+  aplicarMaskCEP,
+  aplicarMaskDocumento,
+  aplicarMaskTelefone,
+  inferirTipoDocumento,
+  somenteDigitos,
+  TIPO_CNPJ,
+  TIPO_CPF,
+} from '@/utils/masks'
+import {
+  documentoValido,
+  emailValido,
+  telefoneValido,
+} from '@/utils/validators'
+
 export const TIPO_DOCUMENTO = [
-  { label: 'CPF', value: 1 },
-  { label: 'CNPJ', value: 2 },
+  { label: 'CPF', value: TIPO_CPF },
+  { label: 'CNPJ', value: TIPO_CNPJ },
 ]
 
 export const CLIENTE_FORMULARIO_VAZIO = {
   nome: '',
   telefone: '',
   email: '',
-  tipoDocumento: 1,
+  tipoDocumento: TIPO_CPF,
   documento: '',
   cep: '',
   logradouro: '',
@@ -18,12 +33,26 @@ export const CLIENTE_FORMULARIO_VAZIO = {
   estado: '',
 }
 
-// a API não devolve o tipo do documento, só o número — infere pela
-// quantidade de dígitos (11 = CPF, 14 = CNPJ) ao carregar um cliente
-// existente pra edição.
-export function inferirTipoDocumento(documento) {
-  const digitos = (documento ?? '').replace(/\D/g, '')
-  return digitos.length === 14 ? 2 : 1
+// a API devolve documento e CEP só com dígitos, e não devolve o tipo do
+// documento: infere pelo tamanho e aplica as máscaras ao carregar um cliente
+// existente pra edição, igual ao que o usuário vê ao digitar.
+export function montarFormularioCliente(dados) {
+  const tipoDocumento = inferirTipoDocumento(dados.documento)
+
+  return {
+    nome: dados.nome ?? '',
+    telefone: aplicarMaskTelefone(dados.telefone),
+    email: dados.email ?? '',
+    tipoDocumento,
+    documento: aplicarMaskDocumento(dados.documento, tipoDocumento),
+    cep: aplicarMaskCEP(dados.cep),
+    logradouro: dados.logradouro ?? '',
+    numero: dados.numero ?? '',
+    complemento: dados.complemento ?? '',
+    bairro: dados.bairro ?? '',
+    cidade: dados.cidade ?? '',
+    estado: dados.estado ?? '',
+  }
 }
 
 export function validarCliente(formulario) {
@@ -34,26 +63,17 @@ export function validarCliente(formulario) {
 
   if (!formulario.telefone.trim())
     erros.telefone = 'Telefone é obrigatório'
+  else if (!telefoneValido(formulario.telefone))
+    erros.telefone = 'Telefone inválido. Informe DDD e número'
 
-  if (!formulario.documento.trim())
+  if (formulario.email.trim() && !emailValido(formulario.email))
+    erros.email = 'E-mail inválido'
+
+  if (!formulario.documento.trim()) {
     erros.documento = 'Documento é obrigatório'
-
-  const digitos = formulario.documento.replace(/\D/g, '')
-
-  if (
-    formulario.tipoDocumento === 1 &&
-    digitos.length > 0 &&
-    digitos.length !== 11
-  ) {
-    erros.documento = 'CPF inválido'
-  }
-
-  if (
-    formulario.tipoDocumento === 2 &&
-    digitos.length > 0 &&
-    digitos.length !== 14
-  ) {
-    erros.documento = 'CNPJ inválido'
+  } else if (!documentoValido(formulario.documento, formulario.tipoDocumento)) {
+    erros.documento =
+      formulario.tipoDocumento === TIPO_CNPJ ? 'CNPJ inválido' : 'CPF inválido'
   }
 
   // endereço é opcional como um todo, mas se algum campo foi preenchido
@@ -92,10 +112,10 @@ export function validarCliente(formulario) {
 export function montarPayloadCliente(formulario) {
   return {
     nome: formulario.nome.trim(),
-    telefone: formulario.telefone.trim(),
+    telefone: somenteDigitos(formulario.telefone),
     email: formulario.email.trim() || null,
     tipoDocumento: formulario.tipoDocumento,
-    documento: formulario.documento.trim(),
+    documento: somenteDigitos(formulario.documento),
     cep: formulario.cep.trim() || null,
     logradouro: formulario.logradouro.trim() || null,
     numero: formulario.numero.trim() || null,

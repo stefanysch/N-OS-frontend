@@ -1,3 +1,5 @@
+import { placaValida } from '@/utils/validators'
+
 export const VEICULO_FORMULARIO_VAZIO = {
   clienteId: '',
   placa: '',
@@ -8,24 +10,22 @@ export const VEICULO_FORMULARIO_VAZIO = {
   chassi: '',
 }
 
-export function validarVeiculo(formulario, { modoWizard }) {
+export function validarVeiculo(formulario, { exigirCliente }) {
   const erros = {}
 
-  if (!modoWizard && !formulario.clienteId)
+  if (exigirCliente && !formulario.clienteId)
     erros.clienteId = 'Selecione um cliente'
 
   if (!formulario.placa.trim())
     erros.placa = 'Placa é obrigatória'
+  else if (!placaValida(formulario.placa))
+    erros.placa = 'Placa inválida. Use ABC-1234 ou ABC1D23'
 
   if (!formulario.marca.trim())
     erros.marca = 'Marca é obrigatória'
 
   if (!formulario.modelo.trim())
     erros.modelo = 'Modelo é obrigatório'
-
-  if (!formulario.ano)
-    erros.ano = 'Ano é obrigatório'
-
   const anoNum = Number(formulario.ano)
   const anoAtual = new Date().getFullYear()
 
@@ -39,15 +39,12 @@ export function validarVeiculo(formulario, { modoWizard }) {
   return erros
 }
 
-export function montarPayloadVeiculo(formulario, { modoWizard, clienteWizard }) {
+export function montarPayloadVeiculo(formulario) {
   return {
-    clienteId: modoWizard
-      ? clienteWizard.id
-      : Number(formulario.clienteId),
     placa: formulario.placa.trim().toUpperCase(),
     marca: formulario.marca.trim(),
     modelo: formulario.modelo.trim(),
-    ano: Number(formulario.ano),
+    ano: formulario.ano ? Number(formulario.ano) : null,
     cor: formulario.cor.trim() || null,
     chassi: formulario.chassi.trim() || null,
   }

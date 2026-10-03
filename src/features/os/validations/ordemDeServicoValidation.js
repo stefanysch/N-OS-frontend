@@ -1,7 +1,14 @@
-function validarItensEDesconto({ itens, desconto, subtotal }) {
+// `quantidadeExistente`: itens já gravados na OS (edição), que também
+// contam pra exigência de ao menos um item.
+function validarItensEDesconto({
+  itens,
+  desconto,
+  subtotal,
+  quantidadeExistente = 0,
+}) {
   const erros = {}
 
-  if (itens.length === 0)
+  if (itens.length + quantidadeExistente === 0)
     erros.itens = 'Adicione ao menos um item'
 
   const descontoNumerico = Number(desconto || 0)
@@ -109,32 +116,15 @@ export function validarEdicaoOrdemDeServico({
   if (!descricaoProblema.trim())
     erros.descricaoProblema = 'Descreva o problema'
 
-  if (itensExistentes.length + itensNovos.length === 0)
-    erros.itens = 'Adicione ao menos um item'
-
-  const descontoNumerico = Number(desconto || 0)
-
-  if (descontoNumerico < 0)
-    erros.desconto = 'O desconto não pode ser negativo.'
-
-  if (descontoNumerico > subtotal)
-    erros.desconto = 'O desconto não pode ser maior que o subtotal.'
-
-  itensNovos.forEach((item, index) => {
-    if (item.tipo === 'peca' && !item.pecaId) {
-      erros[`item_${index}_item`] = 'Selecione uma peça.'
-    }
-
-    if (item.tipo === 'servico' && !item.servicoId) {
-      erros[`item_${index}_item`] = 'Selecione um serviço.'
-    }
-
-    if (!item.quantidade || Number(item.quantidade) < 1) {
-      erros[`item_${index}_qtd`] = 'Qtd. inválida'
-    }
-  })
-
-  return erros
+  return {
+    ...erros,
+    ...validarItensEDesconto({
+      itens: itensNovos,
+      desconto,
+      subtotal,
+      quantidadeExistente: itensExistentes.length,
+    }),
+  }
 }
 
 export function montarPayloadEdicaoOrdemDeServico({

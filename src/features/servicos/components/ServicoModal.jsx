@@ -8,15 +8,10 @@ import { servicoService } from '../services/servicoService'
 import { obterMensagemErro } from '@/utils/erros'
 
 import {
+  SERVICO_FORMULARIO_VAZIO as FORMULARIO_VAZIO,
   validarServico,
-  montarPayloadServico
+  montarPayloadServico,
 } from '../validations/servicoValidation'
-
-const FORMULARIO_VAZIO = {
-  nome: '',
-  descricao: '',
-  valor: ''
-}
 
 export default function ServicoModal({
   aberto,
@@ -154,7 +149,7 @@ export default function ServicoModal({
           name="valor"
           type="number"
           step="0.01"
-          min="0"
+          min="0.01"
           value={formulario.valor}
           onChange={alterarCampo}
           placeholder="0,00"

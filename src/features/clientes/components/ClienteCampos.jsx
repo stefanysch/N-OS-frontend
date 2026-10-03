@@ -5,50 +5,17 @@ import Input from '@/components/ui/Input'
 import { clienteService } from '../services/clienteService'
 import { cepService } from '../services/cepService'
 import { TIPO_DOCUMENTO } from '../validations/clienteValidation'
-
-function aplicarMaskTelefone(valor) {
-  const digits = valor.replace(/\D/g, '').slice(0, 11)
-
-  if (digits.length <= 10) {
-    return digits
-      .replace(/^(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{4})(\d)/, '$1-$2')
-  }
-
-  return digits
-    .replace(/^(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2')
-}
-
-function aplicarMaskCPF(valor) {
-  return valor.replace(/\D/g, '').slice(0, 11)
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-}
-
-function aplicarMaskCNPJ(valor) {
-  return valor.replace(/\D/g, '').slice(0, 14)
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
-}
-
-function aplicarMaskCEP(valor) {
-  return valor.replace(/\D/g, '').slice(0, 8)
-    .replace(/(\d{5})(\d)/, '$1-$2')
-}
+import {
+  aplicarMaskCEP,
+  aplicarMaskDocumento,
+  aplicarMaskTelefone,
+  somenteDigitos,
+} from '@/utils/masks'
 
 function aplicarMask(campo, valor, tipoDocumento) {
   if (campo === 'telefone') return aplicarMaskTelefone(valor)
   if (campo === 'cep') return aplicarMaskCEP(valor)
-
-  if (campo === 'documento') {
-    return tipoDocumento === 1
-      ? aplicarMaskCPF(valor)
-      : aplicarMaskCNPJ(valor)
-  }
+  if (campo === 'documento') return aplicarMaskDocumento(valor, tipoDocumento)
 
   return valor
 }
@@ -113,7 +80,7 @@ export default function ClienteCampos({
   }
 
   async function verificarDocumento() {
-    const doc = formulario.documento.replace(/\D/g, '')
+    const doc = somenteDigitos(formulario.documento)
 
     if (!doc) return
 
@@ -124,7 +91,7 @@ export default function ClienteCampos({
 
       const jaExiste = todos.some(
         (c) =>
-          c.documento?.replace(/\D/g, '') === doc &&
+          somenteDigitos(c.documento) === doc &&
           c.id !== idClienteAtual
       )
 
@@ -141,7 +108,7 @@ export default function ClienteCampos({
   }
 
   async function buscarCep() {
-    const digitos = formulario.cep.replace(/\D/g, '')
+    const digitos = somenteDigitos(formulario.cep)
 
     if (digitos.length !== 8) return
 

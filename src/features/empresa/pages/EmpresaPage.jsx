@@ -6,6 +6,16 @@ import Input from '@/components/ui/Input'
 
 import { empresaService } from '../services/empresaService'
 import { obterMensagemErro } from '@/utils/erros'
+import {
+  aplicarMaskDocumento,
+  aplicarMaskTelefone,
+  somenteDigitos,
+} from '@/utils/masks'
+import {
+  documentoValido,
+  emailValido,
+  telefoneValido,
+} from '@/utils/validators'
 
 const FORMULARIO_VAZIO = {
   nome: '',
@@ -13,6 +23,25 @@ const FORMULARIO_VAZIO = {
   telefone: '',
   email: '',
   endereco: '',
+}
+
+function validarEmpresa(formulario) {
+  const erros = {}
+
+  if (!formulario.nome.trim())
+    erros.nome = 'O nome da empresa é obrigatório.'
+
+  // documento, telefone e e-mail são opcionais, mas se preenchidos precisam ser válidos
+  if (formulario.documento.trim() && !documentoValido(formulario.documento))
+    erros.documento = 'CPF ou CNPJ inválido'
+
+  if (formulario.telefone.trim() && !telefoneValido(formulario.telefone))
+    erros.telefone = 'Telefone inválido. Informe DDD e número'
+
+  if (formulario.email.trim() && !emailValido(formulario.email))
+    erros.email = 'E-mail inválido'
+
+  return erros
 }
 
 export default function EmpresaPage() {
@@ -40,8 +69,8 @@ export default function EmpresaPage() {
 
       setFormulario({
         nome: dados.nome ?? '',
-        documento: dados.documento ?? '',
-        telefone: dados.telefone ?? '',
+        documento: aplicarMaskDocumento(dados.documento),
+        telefone: aplicarMaskTelefone(dados.telefone),
         email: dados.email ?? '',
         endereco: dados.endereco ?? '',
       })
@@ -55,9 +84,15 @@ export default function EmpresaPage() {
   function alterarCampo(e) {
     const { name, value } = e.target
 
+    // sem seletor de tipo: até 11 dígitos é CPF, acima disso é CNPJ
+    let valorFinal = value
+
+    if (name === 'documento') valorFinal = aplicarMaskDocumento(value)
+    if (name === 'telefone') valorFinal = aplicarMaskTelefone(value)
+
     setFormulario((anterior) => ({
       ...anterior,
-      [name]: value,
+      [name]: valorFinal,
     }))
 
     if (erros[name]) {
@@ -70,10 +105,14 @@ export default function EmpresaPage() {
   async function salvar(e) {
     e.preventDefault()
 
-    if (!formulario.nome.trim()) {
-      setErros({ nome: 'O nome da empresa é obrigatório.' })
+    const errosValidacao = validarEmpresa(formulario)
+
+    if (Object.keys(errosValidacao).length > 0) {
+      setErros(errosValidacao)
       return
     }
+
+    setErros({})
 
     setSalvando(true)
     setMensagemErro(null)
@@ -82,8 +121,8 @@ export default function EmpresaPage() {
     try {
       await empresaService.atualizar({
         nome: formulario.nome.trim(),
-        documento: formulario.documento.trim() || null,
-        telefone: formulario.telefone.trim() || null,
+        documento: somenteDigitos(formulario.documento) || null,
+        telefone: somenteDigitos(formulario.telefone) || null,
         email: formulario.email.trim() || null,
         endereco: formulario.endereco.trim() || null,
       })
@@ -139,6 +178,7 @@ export default function EmpresaPage() {
         {!carregando && !erroCarregamento && (
           <form
             onSubmit={salvar}
+            noValidate
             className="space-y-5 border border-(--nos-border) bg-(--nos-surface) p-5"
           >
             <Input
@@ -157,7 +197,9 @@ export default function EmpresaPage() {
                 name="documento"
                 value={formulario.documento}
                 onChange={alterarCampo}
-                placeholder="Opcional"
+                placeholder="CPF ou CNPJ"
+                error={erros.documento}
+                inputMode="numeric"
               />
 
               <Input
@@ -165,7 +207,9 @@ export default function EmpresaPage() {
                 name="telefone"
                 value={formulario.telefone}
                 onChange={alterarCampo}
-                placeholder="Opcional"
+                placeholder="(00) 00000-0000"
+                error={erros.telefone}
+                inputMode="tel"
               />
 
               <Input

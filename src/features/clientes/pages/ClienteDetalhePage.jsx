@@ -19,12 +19,13 @@ import {
   formatarMoeda,
   formatarPlaca,
   formatarTelefone,
+  formatarVeiculo,
   obterIniciais,
 } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
 import {
   CLIENTE_FORMULARIO_VAZIO,
-  inferirTipoDocumento,
+  montarFormularioCliente,
   validarCliente,
   montarPayloadCliente,
 } from '../validations/clienteValidation'
@@ -74,20 +75,8 @@ export default function ClienteDetalhePage() {
 
       setCliente(dados)
 
-      setFormulario({
-        nome: dados.nome ?? '',
-        telefone: dados.telefone ?? '',
-        email: dados.email ?? '',
-        tipoDocumento: inferirTipoDocumento(dados.documento),
-        documento: dados.documento ?? '',
-        cep: dados.cep ?? '',
-        logradouro: dados.logradouro ?? '',
-        numero: dados.numero ?? '',
-        complemento: dados.complemento ?? '',
-        bairro: dados.bairro ?? '',
-        cidade: dados.cidade ?? '',
-        estado: dados.estado ?? '',
-      })
+      setFormulario(montarFormularioCliente(dados))
+
     } catch {
       setErroCarregamento('Não foi possível carregar o cliente.')
     } finally {
@@ -342,7 +331,7 @@ export default function ClienteDetalhePage() {
                       {formatarPlaca(veiculo.placa)}
                     </p>
                     <p className="text-[10px] text-(--nos-text-muted)">
-                      {veiculo.marca} {veiculo.modelo} ({veiculo.ano})
+                      {formatarVeiculo(veiculo)}
                     </p>
                   </div>
 

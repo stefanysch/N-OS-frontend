@@ -20,6 +20,7 @@ import {
   formatarMoeda,
   formatarPlaca,
   formatarTelefone,
+  formatarVeiculo,
 } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
 import {
@@ -76,7 +77,6 @@ export default function VeiculoDetalhePage() {
       setCliente(dadosCliente)
 
       setFormulario({
-        clienteId: dadosVeiculo.clienteId,
         placa: dadosVeiculo.placa ?? '',
         marca: dadosVeiculo.marca ?? '',
         modelo: dadosVeiculo.modelo ?? '',
@@ -119,7 +119,7 @@ export default function VeiculoDetalhePage() {
     e.preventDefault()
     if (!veiculo.ativo) return
 
-    const errosValidacao = validarVeiculo(formulario, { modoWizard: false })
+    const errosValidacao = validarVeiculo(formulario, { exigirCliente: false })
 
     if (Object.keys(errosValidacao).length > 0) {
       setErros(errosValidacao)
@@ -133,7 +133,7 @@ export default function VeiculoDetalhePage() {
     try {
       const atualizado = await veiculoService.atualizar(
         id,
-        montarPayloadVeiculo(formulario, { modoWizard: false })
+        montarPayloadVeiculo(formulario)
       )
 
       setVeiculo(atualizado)
@@ -230,7 +230,7 @@ export default function VeiculoDetalhePage() {
               </div>
 
               <p className="text-xs text-(--nos-text-muted)">
-                {veiculo.marca} {veiculo.modelo} ({veiculo.ano})
+                {formatarVeiculo(veiculo)}
                 {veiculo.cor ? ` · ${veiculo.cor}` : ''}
               </p>
 

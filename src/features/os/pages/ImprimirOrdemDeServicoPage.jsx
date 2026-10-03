@@ -13,6 +13,7 @@ import {
   formatarMoeda,
   formatarPlaca,
   formatarTelefone,
+  formatarVeiculo,
 } from '@/utils/formatters'
 
 function nomeItem(item) {
@@ -186,7 +187,7 @@ export default function ImprimirOrdemDeServicoPage() {
             </p>
             <p className="text-sm font-bold">{formatarPlaca(veiculo?.placa)}</p>
             <p className="text-xs text-gray-600">
-              {veiculo?.marca} {veiculo?.modelo} ({veiculo?.ano})
+              {formatarVeiculo(veiculo)}
             </p>
             {veiculo?.cor && (
               <p className="text-xs text-gray-600">{veiculo.cor}</p>

@@ -6,7 +6,7 @@ export default function ModalErro({ aberto, mensagem, onFechar }) {
     <Modal
       aberto={aberto}
       onFechar={onFechar}
-      titulo="// ERRO >_<"
+      titulo="// ERRO ¯(°_o)/¯"
       subtitulo="N-OS"
       size="sm"
     >

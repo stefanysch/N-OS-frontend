@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import { perfilService } from '../services/perfilService'
 import { salvarUsuarioLocal } from '@/utils/usuarioLocal'
 import { obterMensagemErro } from '@/utils/erros'
+import { emailValido } from '@/utils/validators'
 
 export default function PerfilPage() {
   const navigate = useNavigate()
@@ -66,6 +67,7 @@ export default function PerfilPage() {
 
     if (!dados.nome.trim()) erros.nome = 'O nome é obrigatório.'
     if (!dados.email.trim()) erros.email = 'O e-mail é obrigatório.'
+    else if (!emailValido(dados.email)) erros.email = 'E-mail inválido.'
 
     return erros
   }
@@ -213,6 +215,7 @@ export default function PerfilPage() {
 
               <form
                 onSubmit={salvarDados}
+                noValidate
                 className="space-y-5 border border-(--nos-border) bg-(--nos-surface) p-5"
               >
                 <div className="grid gap-5 md:grid-cols-2">

@@ -229,10 +229,7 @@ export default function ClientePage() {
                 </span>
 
                 <span className="truncate pr-4 text-xs text-(--nos-text-muted)">
-                  {formatarDocumento(
-                    cliente.documento,
-                    cliente.tipoDocumento
-                  )}
+                  {formatarDocumento(cliente.documento)}
                 </span>
 
                 <Badge status={cliente.ativo ? 'ativo' : 'inativo'} />

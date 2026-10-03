@@ -8,15 +8,10 @@ import { pecaService } from '../services/pecaService'
 import { obterMensagemErro } from '@/utils/erros'
 
 import {
+  PECA_FORMULARIO_VAZIO as FORMULARIO_VAZIO,
   validarPeca,
-  montarPayloadPeca
+  montarPayloadPeca,
 } from '../validations/pecaValidation'
-
-const FORMULARIO_VAZIO = {
-  nome: '',
-  descricao: '',
-  valor: ''
-}
 
 export default function PecaModal({
   aberto,
@@ -150,7 +145,7 @@ export default function PecaModal({
           name="valor"
           type="number"
           step="0.01"
-          min="0"
+          min="0.01"
           value={formulario.valor}
           onChange={alterarCampo}
           placeholder="0,00"

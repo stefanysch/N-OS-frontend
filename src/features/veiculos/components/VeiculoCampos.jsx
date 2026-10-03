@@ -1,18 +1,9 @@
 import Input from '@/components/ui/Input'
 
-function aplicarMaskPlaca(valor) {
-  const raw = valor
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, 7)
-
-  if (raw.length <= 3) return raw
-
-  return raw.slice(0, 3) + '-' + raw.slice(3)
-}
+import { aplicarMaskPlaca, somenteDigitos } from '@/utils/masks'
 
 function aplicarMaskAno(valor) {
-  return valor.replace(/\D/g, '').slice(0, 4)
+  return somenteDigitos(valor).slice(0, 4)
 }
 
 /**
@@ -92,7 +83,6 @@ export default function VeiculoCampos({
           onChange={alterarCampo}
           placeholder="2024"
           error={erros.ano}
-          required
         />
 
         <Input

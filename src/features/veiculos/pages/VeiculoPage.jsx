@@ -251,9 +251,11 @@ export default function VeiculoPage() {
 
                 </div>
 
-                <span className="text-xs text-(--nos-text-muted)">
-                  {veiculo.ano}
-                </span>
+                {veiculo.ano && (
+                  <span className="text-xs text-(--nos-text-muted)">
+                    {veiculo.ano}
+                  </span>
+                )}
 
                 <Badge
                   status={

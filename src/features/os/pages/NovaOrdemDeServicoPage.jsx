@@ -20,6 +20,7 @@ import {
   montarPayloadOrdemDeServico,
 } from '../validations/ordemDeServicoValidation'
 
+import { formatarVeiculo } from '@/utils/formatters'
 import { STATUS_OS, obterStatus } from '@/utils/statusOS'
 import { obterMensagemErro } from '@/utils/erros'
 
@@ -490,9 +491,11 @@ export default function NovaOrdemDeServicoPage() {
                           {' '}
                           {wizardState.veiculo.modelo}
                         </p>
-                        <p className="text-[10px] text-(--nos-text-muted)">
-                          {wizardState.veiculo.ano}
-                        </p>
+                        {wizardState.veiculo.ano && (
+                          <p className="text-[10px] text-(--nos-text-muted)">
+                            {wizardState.veiculo.ano}
+                          </p>
+                        )}
                       </div>
 
                     </div>
@@ -584,7 +587,7 @@ export default function NovaOrdemDeServicoPage() {
                     disabled={!clienteId || veiculosCarregando}
                     options={veiculos.map((veiculo) => ({
                       value: veiculo.id,
-                      label: `${veiculo.placa} — ${veiculo.marca} ${veiculo.modelo} (${veiculo.ano})`,
+                      label: `${veiculo.placa} — ${formatarVeiculo(veiculo)}`,
                     }))}
                     placeholder={
                       !clienteId

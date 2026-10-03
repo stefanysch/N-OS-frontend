@@ -63,7 +63,7 @@ export default function VeiculoModal({
   async function salvar(e) {
     e.preventDefault()
 
-    const errosValidacao = validarVeiculo(formulario, { modoWizard })
+    const errosValidacao = validarVeiculo(formulario, { exigirCliente: !modoWizard })
 
     if (Object.keys(errosValidacao).length > 0) {
       setErros(errosValidacao)
@@ -73,7 +73,10 @@ export default function VeiculoModal({
     setSalvando(true)
     setMensagemErro(null)
 
-    const payload = montarPayloadVeiculo(formulario, { modoWizard, clienteWizard })
+    const payload = {
+      clienteId: modoWizard ? clienteWizard.id : Number(formulario.clienteId),
+      ...montarPayloadVeiculo(formulario),
+    }
 
     try {
       const veiculoCriado = await veiculoService.criar(payload)
