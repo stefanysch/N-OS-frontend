@@ -193,10 +193,13 @@ export default function ClientePage() {
             {clientesFiltrados.map((cliente, indice) => (
               <div
                 key={cliente.id}
-                onClick={() => abrirDetalhe(cliente)}
+                onClick={cliente.ativo ? () => abrirDetalhe(cliente) : undefined}
                 className={[
                   'grid grid-cols-[80px_1fr_140px_180px_100px_150px]',
-                  'cursor-pointer items-center px-4 py-3 transition-colors hover:bg-(--nos-surface-2)',
+                  'items-center px-4 py-3',
+                  cliente.ativo
+                    ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
+                    : 'cursor-default',
                   indice !== clientesFiltrados.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
@@ -238,16 +241,6 @@ export default function ClientePage() {
                   className="flex items-center gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => abrirDetalhe(cliente)}
-                  >
-                    Editar
-                  </Button>
-
-                  <span className="text-(--nos-border-2)">|</span>
-
                   <Button
                     size="sm"
                     variant="ghost"

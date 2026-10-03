@@ -122,6 +122,7 @@ export default function ClienteDetalhePage() {
 
   async function salvar(e) {
     e.preventDefault()
+    if (!cliente.ativo) return
 
     const errosValidacao = validarCliente(formulario)
 
@@ -277,13 +278,21 @@ export default function ClienteDetalhePage() {
             onSubmit={salvar}
             className="space-y-5 border border-(--nos-border) bg-(--nos-surface) p-5"
           >
-            <ClienteCampos
-              formulario={formulario}
-              setFormulario={setFormulario}
-              erros={erros}
-              setErros={setErros}
-              idClienteAtual={Number(id)}
-            />
+            {!cliente.ativo && (
+              <p className="text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
+                Cliente inativo — reative para editar.
+              </p>
+            )}
+
+            <fieldset disabled={!cliente.ativo} className="space-y-5 disabled:opacity-60">
+              <ClienteCampos
+                formulario={formulario}
+                setFormulario={setFormulario}
+                erros={erros}
+                setErros={setErros}
+                idClienteAtual={Number(id)}
+              />
+            </fieldset>
 
             {mensagemErro && (
               <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-2">
@@ -297,11 +306,13 @@ export default function ClienteDetalhePage() {
               </div>
             )}
 
-            <div className="flex justify-end">
-              <Button variant="primary" type="submit" loading={salvando}>
-                Salvar alterações
-              </Button>
-            </div>
+            {cliente.ativo && (
+              <div className="flex justify-end">
+                <Button variant="primary" type="submit" loading={salvando}>
+                  Salvar alterações
+                </Button>
+              </div>
+            )}
           </form>
         )}
 

@@ -212,11 +212,17 @@ export default function OrdemDeServicoPage() {
               return (
                 <div
                   key={ordem.id}
-                  onClick={() => navigate(`/ordens/${ordem.id}/editar`)}
+                  onClick={
+                    ordem.ativo
+                      ? () => navigate(`/ordens/${ordem.id}/editar`)
+                      : undefined
+                  }
                   className={[
                     'grid grid-cols-[80px_1fr_1fr_2fr_140px_110px_150px]',
-                    'cursor-pointer items-center px-4 py-3',
-                    'transition-colors hover:bg-(--nos-surface-2)',
+                    'items-center px-4 py-3',
+                    ordem.ativo
+                      ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
+                      : 'cursor-default',
                     indice !== ordensFiltradas.length - 1
                       ? 'border-b border-(--nos-border)'
                       : '',
@@ -251,21 +257,19 @@ export default function OrdemDeServicoPage() {
                     onClick={(e) => e.stopPropagation()}
                   >
 
-                    {ordem.ativo && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate(`/ordens/${ordem.id}/editar`)}
-                        >
-                          Editar
-                        </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        window.open(`/ordens/${ordem.id}/imprimir`, '_blank')
+                      }
+                    >
+                      PDF
+                    </Button>
 
-                        <span className="text-(--nos-border-2)">
-                          |
-                        </span>
-                      </>
-                    )}
+                    <span className="text-(--nos-border-2)">
+                      |
+                    </span>
 
                     <Button
                       size="sm"

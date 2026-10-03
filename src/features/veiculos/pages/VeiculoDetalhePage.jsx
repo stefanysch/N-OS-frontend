@@ -117,6 +117,7 @@ export default function VeiculoDetalhePage() {
 
   async function salvar(e) {
     e.preventDefault()
+    if (!veiculo.ativo) return
 
     const errosValidacao = validarVeiculo(formulario, { modoWizard: false })
 
@@ -277,12 +278,20 @@ export default function VeiculoDetalhePage() {
             onSubmit={salvar}
             className="space-y-5 border border-(--nos-border) bg-(--nos-surface) p-5"
           >
-            <VeiculoCampos
-              formulario={formulario}
-              setFormulario={setFormulario}
-              erros={erros}
-              setErros={setErros}
-            />
+            {!veiculo.ativo && (
+              <p className="text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
+                Veículo inativo — reative para editar.
+              </p>
+            )}
+
+            <fieldset disabled={!veiculo.ativo} className="space-y-5 disabled:opacity-60">
+              <VeiculoCampos
+                formulario={formulario}
+                setFormulario={setFormulario}
+                erros={erros}
+                setErros={setErros}
+              />
+            </fieldset>
 
             {mensagemErro && (
               <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-2">
@@ -296,11 +305,13 @@ export default function VeiculoDetalhePage() {
               </div>
             )}
 
-            <div className="flex justify-end">
-              <Button variant="primary" type="submit" loading={salvando}>
-                Salvar alterações
-              </Button>
-            </div>
+            {veiculo.ativo && (
+              <div className="flex justify-end">
+                <Button variant="primary" type="submit" loading={salvando}>
+                  Salvar alterações
+                </Button>
+              </div>
+            )}
           </form>
         )}
 

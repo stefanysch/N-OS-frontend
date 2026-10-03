@@ -78,6 +78,10 @@ export default function EditarOrdemDeServicoPage() {
 
     try {
       const ordem = await ordemDeServicoService.buscarPorId(id)
+      if (!ordem.ativo) {
+        navigate('/ordens', { replace: true })
+        return
+      }
 
       const [dadosVeiculo, dadosPecas, dadosServicos] = await Promise.all([
         veiculoService.buscarPorId(ordem.veiculoId),
