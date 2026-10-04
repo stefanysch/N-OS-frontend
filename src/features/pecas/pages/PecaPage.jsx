@@ -292,7 +292,7 @@ export default function PecaPage() {
                     className={
                       peca.ativo
                         ? 'hover:!text-(--nos-red)'
-                        : 'hover:!text-emerald-500'
+                        : 'hover:!text-(--nos-success)'
                     }
                     onClick={() => abrirConfirmacao(peca)}
                   >

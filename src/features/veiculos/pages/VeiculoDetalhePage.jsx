@@ -363,6 +363,19 @@ export default function VeiculoDetalhePage() {
                   </span>
                 </button>
               ))}
+
+            {veiculo.ativo && cliente?.ativo && (
+              <div className="flex justify-end border-t border-(--nos-border) px-4 py-3">
+                <Button variant="secondary" size="sm" onClick={() => navigate('/ordens/nova', {
+                  state: {
+                    cliente: { id: cliente.id, nome: cliente.nome },
+                    veiculo,
+                  },
+                })}>
+                  + Nova OS
+                </Button>
+              </div>
+            )}
           </div>
         )}
 

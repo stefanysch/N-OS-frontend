@@ -277,7 +277,7 @@ export default function ServicoPage() {
                     className={
                       servico.ativo
                         ? 'hover:!text-(--nos-red)'
-                        : 'hover:!text-emerald-500'
+                        : 'hover:!text-(--nos-success)'
                     }
                     onClick={() =>
                       pedirConfirmacaoStatus(servico)

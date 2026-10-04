@@ -5,7 +5,7 @@
  *   <Badge status="ativo" />
  *   <Badge status="aguardando_pecas" />
  *   <Badge status="em_execucao" />
- *   <Badge label="Custom" color="text-sky-400" dot="bg-sky-400" />
+ *   <Badge label="Custom" color="text-(--nos-sky)" dot="bg-(--nos-sky)" />
  */
 
 import { STATUS_OS } from '@/utils/statusOS'
@@ -19,15 +19,15 @@ const presetsStatusOS = Object.fromEntries(
 
 const presets = {
   // entidade
-  ativo:            { label: 'Ativo',             color: 'text-emerald-500', dot: 'bg-emerald-500' },
+  ativo:            { label: 'Ativo',             color: 'text-(--nos-green)', dot: 'bg-(--nos-green)' },
   inativo:          { label: 'Inativo',           color: 'text-(--nos-text-muted)', dot: 'bg-(--nos-text-faint)' },
 
   ...presetsStatusOS,
 
   // genéricos
-  pendente:         { label: 'Pendente',          color: 'text-amber-400',   dot: 'bg-amber-400'   },
-  em_andamento:     { label: 'Em andamento',      color: 'text-sky-400',     dot: 'bg-sky-400'     },
-  concluido:        { label: 'Concluído',         color: 'text-emerald-500', dot: 'bg-emerald-500' },
+  pendente:         { label: 'Pendente',          color: 'text-(--nos-amber)',   dot: 'bg-(--nos-amber)'   },
+  em_andamento:     { label: 'Em andamento',      color: 'text-(--nos-sky)',     dot: 'bg-(--nos-sky)'     },
+  concluido:        { label: 'Concluído',         color: 'text-(--nos-green)', dot: 'bg-(--nos-green)' },
   cancelado:        { label: 'Cancelado',         color: 'text-(--nos-red)', dot: 'bg-(--nos-red)' },
 }
 

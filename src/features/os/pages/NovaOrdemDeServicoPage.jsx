@@ -501,8 +501,8 @@ export default function NovaOrdemDeServicoPage() {
                     </div>
 
                     <p className="text-[10px] text-(--nos-text-faint)">
-                      Cliente e veículo definidos no cadastro guiado e não
-                      podem ser alterados nesta OS.
+                      Cliente e veículo já definidos e não podem ser
+                      alterados nesta OS.
                     </p>
 
                   </>

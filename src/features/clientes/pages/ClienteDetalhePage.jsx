@@ -8,6 +8,7 @@ import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
 
 import ClienteCampos from '../components/ClienteCampos'
+import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
 
 import { clienteService } from '../services/clienteService'
 import { ordemDeServicoService } from '@/features/os/services/ordemDeServicoService'
@@ -58,6 +59,9 @@ export default function ClienteDetalhePage() {
   const [mensagemSucesso, setMensagemSucesso] = useState(null)
   const [salvando, setSalvando] = useState(false)
 
+  // ─── aba veículos ─────────────────────────────────────────────────────────
+  const [modalVeiculoAberto, setModalVeiculoAberto] = useState(false)
+
   // ─── aba ordens ───────────────────────────────────────────────────────────
   const [ordens, setOrdens] = useState([])
   const [carregandoOrdens, setCarregandoOrdens] = useState(false)
@@ -71,8 +75,8 @@ export default function ClienteDetalhePage() {
     carregar()
   }, [id])
 
-  async function carregar() {
-    setCarregando(true)
+  async function carregar({ silencioso = false } = {}) {
+    if (!silencioso) setCarregando(true)
     setErroCarregamento(null)
 
     try {
@@ -344,6 +348,14 @@ export default function ClienteDetalhePage() {
                 </button>
               ))
             )}
+
+            {cliente.ativo && (
+              <div className="flex justify-end border-t border-(--nos-border) px-4 py-3">
+                <Button variant="secondary" size="sm" onClick={() => setModalVeiculoAberto(true)}>
+                  + Novo veículo
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -401,10 +413,27 @@ export default function ClienteDetalhePage() {
                   </button>
                 )
               })}
+
+            {cliente.ativo && (
+              <div className="flex justify-end border-t border-(--nos-border) px-4 py-3">
+                <Button variant="secondary" size="sm" onClick={() => navigate('/ordens/nova', {
+                  state: { cliente: { id: cliente.id, nome: cliente.nome } },
+                })}>
+                  + Nova OS
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
       </div>
+
+      <VeiculoModal
+        aberto={modalVeiculoAberto}
+        onFechar={() => setModalVeiculoAberto(false)}
+        clienteFixo={cliente}
+        onSucesso={() => carregar({ silencioso: true })}
+      />
 
       <ModalConfirmacao
         aberto={Boolean(confirmacaoStatus)}

@@ -246,7 +246,7 @@ export default function OrdemDeServicoPage() {
                       className={
                         ordem.ativo
                           ? 'hover:!text-(--nos-red)'
-                          : 'hover:!text-emerald-500'
+                          : 'hover:!text-(--nos-success)'
                       }
                       onClick={() => abrirConfirmacao(ordem)}
                     >

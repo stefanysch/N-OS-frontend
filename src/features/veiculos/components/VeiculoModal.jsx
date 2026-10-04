@@ -25,6 +25,7 @@ export default function VeiculoModal({
   aberto,
   onFechar,
   clienteWizard,
+  clienteFixo,
   onSucesso,
   onConcluir,
 }) {
@@ -34,9 +35,11 @@ export default function VeiculoModal({
   const [salvando, setSalvando] = useState(false)
   const [mensagemErro, setMensagemErro] = useState(null)
   const modoWizard = Boolean(clienteWizard)
+  // cliente já definido: vindo do wizard ou da tela de detalhes do cliente
+  const clienteDefinido = clienteWizard ?? clienteFixo ?? null
 
   useEffect(() => {
-    if (modoWizard) return
+    if (clienteDefinido) return
 
     clienteService
       .listar()
@@ -44,7 +47,7 @@ export default function VeiculoModal({
         setClientes(Array.isArray(d) ? d.filter((c) => c.ativo) : [])
       )
       .catch(() => setClientes([]))
-  }, [modoWizard])
+  }, [clienteDefinido])
 
   useEffect(() => {
     setFormulario(VEICULO_FORMULARIO_VAZIO)
@@ -63,7 +66,7 @@ export default function VeiculoModal({
   async function salvar(e) {
     e.preventDefault()
 
-    const errosValidacao = validarVeiculo(formulario, { exigirCliente: !modoWizard })
+    const errosValidacao = validarVeiculo(formulario, { exigirCliente: !clienteDefinido })
 
     if (Object.keys(errosValidacao).length > 0) {
       setErros(errosValidacao)
@@ -74,7 +77,7 @@ export default function VeiculoModal({
     setMensagemErro(null)
 
     const payload = {
-      clienteId: modoWizard ? clienteWizard.id : Number(formulario.clienteId),
+      clienteId: clienteDefinido ? clienteDefinido.id : Number(formulario.clienteId),
       ...montarPayloadVeiculo(formulario),
     }
 
@@ -109,15 +112,17 @@ export default function VeiculoModal({
     >
       <Modal.Body>
 
-        <div className="mb-5 border border-(--nos-border) bg-(--nos-surface) px-4 py-3">
-          <Stepper
-            steps={WIZARD_STEPS}
-            currentStep="veiculo"
-            completedSteps={modoWizard ? ['cliente'] : []}
-          />
-        </div>
+        {modoWizard && (
+          <div className="mb-5 border border-(--nos-border) bg-(--nos-surface) px-4 py-3">
+            <Stepper
+              steps={WIZARD_STEPS}
+              currentStep="veiculo"
+              completedSteps={['cliente']}
+            />
+          </div>
+        )}
 
-        {modoWizard ? (
+        {clienteDefinido ? (
           <div className="mb-4 flex items-center gap-3 border border-(--nos-success)/20 bg-(--nos-success)/5 px-3 py-2">
 
             <span className="font-data text-[10px] uppercase tracking-widest text-(--nos-success)/60">
@@ -125,11 +130,11 @@ export default function VeiculoModal({
             </span>
 
             <span className="font-data text-xs text-(--nos-success)">
-              {clienteWizard.nome}
+              {clienteDefinido.nome}
             </span>
 
             <span className="ml-auto font-data text-[10px] text-(--nos-success)/40">
-              #{String(clienteWizard.id).padStart(4, '0')}
+              #{String(clienteDefinido.id).padStart(4, '0')}
             </span>
 
           </div>

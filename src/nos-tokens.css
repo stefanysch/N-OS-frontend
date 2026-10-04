@@ -9,7 +9,7 @@
   /* ── texto ── */
   --nos-text:        #ffffff;
   --nos-text-dim:    #888888;
-  --nos-text-muted:  #555555;
+  --nos-text-muted:  #b3b3b3;
   --nos-text-faint:  #333333;
 
   /* ── principal ── */
@@ -23,6 +23,14 @@
   --nos-warning:     #f59e0b;
   --nos-danger:      #e11d48;
 
+  /* ── status (OS e badges) ── */
+  --nos-violet:      #a78bfa;
+  --nos-amber:       #fbbf24;
+  --nos-sky:         #38bdf8;
+  --nos-orange:      #fb923c;
+  --nos-green:       #10b981;
+
+
   /* ── fontes ── */
   --nos-font-logo:   'Michroma', sans-serif;
   --nos-font-ui:     'Rajdhani', sans-serif;
@@ -34,21 +42,29 @@
 
 html.light {
   /* ── cores base ── */
-  --nos-bg:          #f2f2f2;
-  --nos-surface:     #ffffff;
-  --nos-surface-2:   #ebebeb;
-  --nos-border:      #e0e0e0;
-  --nos-border-2:    #cccccc;
+  --nos-bg:          #e0e0e0;
+  --nos-surface:     #ebebeb;
+  --nos-surface-2:   #d6d6d6;
+  --nos-border:      #cdcdcd;
+  --nos-border-2:    #b8b8b8;
 
   /* ── texto ── */
-  --nos-text:        #111111;
-  --nos-text-dim:    #4d4d4d;
-  --nos-text-muted:  #666666;
-  --nos-text-faint:  #aaaaaa;
+  --nos-text:        #0d0d0d;
+  --nos-text-dim:    #3d3d3d;
+  --nos-text-muted:  #555555;
+  --nos-text-faint:  #8a8a8a;
 
   /* ── principal ── */
   --nos-red-dim:     rgba(225, 29, 72, 0.08);
   --nos-red-border:  rgba(225, 29, 72, 0.25);
+
+  /* ── status: um pouco mais escuros p/ contraste no fundo claro ── */
+  --nos-violet:      #7c3aed;
+  --nos-amber:       #d97706;
+  --nos-sky:         #0284c7;
+  --nos-orange:      #ea580c;
+  --nos-green:       #059669;
+
 }
 
 /* logo — Michroma */

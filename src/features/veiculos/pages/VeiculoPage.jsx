@@ -95,16 +95,16 @@ export default function VeiculoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-(--nos-bg) font-data text-(--nos-text)">
+    <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
 
       <div className="flex items-center justify-between border-b border-(--nos-border) px-8 py-5">
 
         <div>
-          <p className="font-ui text-[10px] uppercase tracking-[0.25em] text-(--nos-red)">
+          <p className="text-[10px] uppercase tracking-[0.25em] text-(--nos-red)">
             N-OS / VEÍCULOS
           </p>
 
-          <h1 className="font-ui text-sm uppercase tracking-widest text-(--nos-text)">
+          <h1 className="text-sm uppercase tracking-widest text-(--nos-text)">
             // VEÍCULOS
           </h1>
         </div>
@@ -129,7 +129,7 @@ export default function VeiculoPage() {
         </div>
 
         {carregando && (
-          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-(--nos-text-faint)">
+          <div className="flex items-center justify-center gap-2 py-16 text-xs uppercase tracking-widest text-(--nos-text-muted)">
             <span className="animate-pulse text-(--nos-red)">
               ■
             </span>
@@ -141,7 +141,7 @@ export default function VeiculoPage() {
         {erro && !carregando && (
           <div className="border border-(--nos-red-border) bg-(--nos-red-dim) px-4 py-3">
 
-            <p className="font-data text-xs text-(--nos-red)">
+            <p className="font-mono text-xs text-(--nos-red)">
               {erro}
             </p>
 
@@ -173,7 +173,7 @@ export default function VeiculoPage() {
                   sort={sort}
                   dir={dir}
                   onOrdenar={ordenarPor}
-                  className="font-ui text-(--nos-text-faint)"
+                  className="text-(--nos-text-muted)"
                 />
               ))}
 
@@ -204,7 +204,7 @@ export default function VeiculoPage() {
                 ].join(' ')}
               >
 
-                <span className="font-data text-xs text-(--nos-red)">
+                <span className="font-mono text-xs text-(--nos-red)">
                   #{String(veiculo.id).padStart(4, '0')}
                 </span>
 
@@ -220,7 +220,7 @@ export default function VeiculoPage() {
 
                 </div>
 
-                <span className="font-data text-xs tracking-widest text-(--nos-text)">
+                <span className="font-mono text-xs tracking-widest text-(--nos-text)">
                   {formatarPlaca(veiculo.placa)}
                 </span>
 
