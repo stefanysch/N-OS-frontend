@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import ColunaOrdenavel from '@/components/ui/ColunaOrdenavel'
+import Paginacao from '@/components/ui/Paginacao'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
@@ -10,51 +12,48 @@ import PecaModal from '../components/PecaModal'
 
 import { pecaService } from '../services/pecaService'
 
+import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarMoeda } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
 
+const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
+
+const COLUNAS = [
+  { rotulo: '// ID' },
+  { rotulo: '// NOME', campo: 'nome' },
+  { rotulo: '// DESCRIÇÃO' },
+  { rotulo: '// VALOR', campo: 'valor' },
+  { rotulo: '// STATUS' },
+  { rotulo: '// AÇÕES' },
+]
+
 export default function PecaPage() {
 
-  const [pecas, setPecas] = useState([])
-  const [busca, setBusca] = useState('')
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
+  const {
+    itens: pecas,
+    totalItems,
+    totalPages,
+    page,
+    sort,
+    dir,
+    busca,
+    setBusca,
+    ordenarPor,
+    irParaPagina,
+    carregando,
+    atualizando,
+    erro,
+    recarregar: carregar,
+  } = useListaPaginada({
+    buscar: pecaService.listarPaginado,
+    ordenacaoPadrao: ORDENACAO_PADRAO,
+  })
+
   const [modalAberto, setModalAberto] = useState(false)
   const [pecaEdicao, setPecaEdicao] = useState(null)
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
-
-  useEffect(() => {
-    carregar()
-  }, [])
-
-  async function carregar() {
-    setCarregando(true)
-    setErro(null)
-
-    try {
-      const pecas =
-        await pecaService.listar()
-
-      setPecas(
-        Array.isArray(pecas)
-          ? pecas
-          : []
-      )
-
-    } 
-    
-    catch (erro) {
-      setErro(
-        'Falha ao carregar peças.'
-      )
-
-    } finally {
-      setCarregando(false)
-    }
-
-  }
 
   function abrirCriacao() {
     setPecaEdicao(null)
@@ -109,10 +108,6 @@ export default function PecaPage() {
 
   }
 
-  const pecasFiltradas = pecas.filter((peca) =>
-    peca.nome?.toLowerCase()?.includes(busca.trim().toLowerCase())
-  )
-
   return (
 
     <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
@@ -146,7 +141,7 @@ export default function PecaPage() {
           <SearchInput
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome..."
+            placeholder="Buscar por nome ou descrição..."
           />
         </div>
 
@@ -189,31 +184,30 @@ export default function PecaPage() {
 
         {!carregando && !erro && (
 
-          <div className="border border-(--nos-border)">
+          <div className={[
+            'border border-(--nos-border) transition-opacity',
+            atualizando ? 'opacity-60' : '',
+          ].join(' ')}>
 
             <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
-              {[
-                '// ID',
-                '// NOME',
-                '// DESCRIÇÃO',
-                '// VALOR',
-                '// STATUS',
-                '// AÇÕES'
-              ].map((coluna) => (
+              {COLUNAS.map((coluna) => (
 
-                <span
-                  key={coluna}
-                  className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)"
-                >
-                  {coluna}
-                </span>
+                <ColunaOrdenavel
+                  key={coluna.rotulo}
+                  rotulo={coluna.rotulo}
+                  campo={coluna.campo}
+                  sort={sort}
+                  dir={dir}
+                  onOrdenar={ordenarPor}
+                  className="text-(--nos-text-muted)"
+                />
 
               ))}
 
             </div>
 
-            {pecasFiltradas.length === 0 && (
+            {pecas.length === 0 && (
 
               <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
 
@@ -225,7 +219,7 @@ export default function PecaPage() {
 
             )}
 
-            {pecasFiltradas.map((peca, indice) => (
+            {pecas.map((peca, indice) => (
 
               <div
                 key={peca.id}
@@ -233,7 +227,7 @@ export default function PecaPage() {
                   'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
                   'transition-colors hover:bg-(--nos-surface-2)',
-                  indice !== pecasFiltradas.length - 1
+                  indice !== pecas.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
                   !peca.ativo
@@ -317,35 +311,17 @@ export default function PecaPage() {
 
         )}
 
-        {!carregando &&
-          !erro &&
-          pecasFiltradas.length > 0 && (
+        {!carregando && !erro && totalItems > 0 && (
 
-            <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
+          <Paginacao
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rotulo="peça(s)"
+            onMudar={irParaPagina}
+          />
 
-              <span>
-
-                {pecasFiltradas.length} peça(s)
-
-              </span>
-
-              <span>
-
-                {pecasFiltradas.filter(
-                  (peca) => peca.ativo
-                ).length} ativas
-
-                {' • '}
-
-                {pecasFiltradas.filter(
-                  (peca) => !peca.ativo
-                ).length} inativas
-
-              </span>
-
-            </div>
-
-          )}
+        )}
 
       </div>
 

@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import ColunaOrdenavel from '@/components/ui/ColunaOrdenavel'
+import Paginacao from '@/components/ui/Paginacao'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
@@ -10,63 +12,48 @@ import ModalErro from '@/components/shared/ModalErro'
 import { statusOSParaPreset } from '@/utils/statusOS'
 
 import { ordemDeServicoService } from '../services/ordemDeServicoService'
-import { veiculoService } from '@/features/veiculos/services/veiculoService'
-import { clienteService } from '@/features/clientes/services/clienteService'
-
-import { formatarMoeda, formatarPlaca } from '@/utils/formatters'
+import { useListaPaginada } from '@/hooks/useListaPaginada'
+import { formatarData, formatarMoeda, formatarPlaca } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+
+const ORDENACAO_PADRAO = { sort: 'dataAbertura', dir: 'desc' }
+
+const COLUNAS = [
+  { rotulo: '// ID' },
+  { rotulo: '// CLIENTE', campo: 'cliente' },
+  { rotulo: '// VEÍCULO', campo: 'placa' },
+  { rotulo: '// ABERTURA', campo: 'dataAbertura' },
+  { rotulo: '// STATUS', campo: 'status' },
+  { rotulo: '// TOTAL', campo: 'valorTotal' },
+  { rotulo: '// AÇÕES' },
+]
 
 export default function OrdemDeServicoPage() {
   const navigate = useNavigate()
 
-  const [ordens, setOrdens] = useState([])
-  const [veiculosPorId, setVeiculosPorId] = useState({})
-  const [clientesPorId, setClientesPorId] = useState({})
-  const [busca, setBusca] = useState('')
+  const {
+    itens: ordens,
+    totalItems,
+    totalPages,
+    page,
+    sort,
+    dir,
+    busca,
+    setBusca,
+    ordenarPor,
+    irParaPagina,
+    carregando,
+    atualizando,
+    erro,
+    recarregar: carregar,
+  } = useListaPaginada({
+    buscar: ordemDeServicoService.listarPaginado,
+    ordenacaoPadrao: ORDENACAO_PADRAO,
+  })
 
-  const [carregando, setCarregando] =useState(true)
-  const [erro, setErro] = useState(null)
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
-
-  useEffect(() => {
-    carregar()
-  }, [])
-
-  async function carregar() {
-    setCarregando(true)
-    setErro(null)
-
-    try {
-      const [dadosOrdens, dadosVeiculos, dadosClientes] =
-        await Promise.all([
-          ordemDeServicoService.listar(),
-          veiculoService.listar(),
-          clienteService.listar(),
-        ])
-
-      setOrdens(Array.isArray(dadosOrdens) ? dadosOrdens : [])
-
-      setVeiculosPorId(
-        Object.fromEntries(
-          (Array.isArray(dadosVeiculos) ? dadosVeiculos : [])
-            .map((veiculo) => [veiculo.id, veiculo])
-        )
-      )
-
-      setClientesPorId(
-        Object.fromEntries(
-          (Array.isArray(dadosClientes) ? dadosClientes : [])
-            .map((cliente) => [cliente.id, cliente])
-        )
-      )
-    } catch {
-      setErro('Falha ao carregar ordens de serviço.')
-    } finally {
-      setCarregando(false)
-    }
-  }
 
   function abrirConfirmacao(ordem) {
     setConfirmacaoStatus({
@@ -96,19 +83,6 @@ export default function OrdemDeServicoPage() {
       setConfirmacaoStatus(null)
     }
   }
-
-  const buscaNormalizada = busca.trim().toLowerCase()
-
-  const ordensFiltradas = ordens.filter((ordem) => {
-    const veiculo = veiculosPorId[ordem.veiculoId]
-    const cliente = veiculo ? clientesPorId[veiculo.clienteId] : null
-
-    return (
-      veiculo?.placa?.toLowerCase()?.includes(buscaNormalizada) ||
-      cliente?.nome?.toLowerCase()?.includes(buscaNormalizada) ||
-      false
-    )
-  })
 
   return (
     <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
@@ -174,30 +148,28 @@ export default function OrdemDeServicoPage() {
         )}
 
         {!carregando && !erro && (
-          <div className="border border-(--nos-border)">
+          <div className={[
+            'border border-(--nos-border) transition-opacity',
+            atualizando ? 'opacity-60' : '',
+          ].join(' ')}>
 
-            <div className="grid grid-cols-[80px_1fr_1fr_2fr_140px_110px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
+            <div className="grid grid-cols-[80px_1fr_1fr_110px_140px_110px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
-              {[
-                '// ID',
-                '// CLIENTE',
-                '// VEÍCULO',
-                '// PROBLEMA',
-                '// STATUS',
-                '// TOTAL',
-                '// AÇÕES',
-              ].map((coluna) => (
-                <span
-                  key={coluna}
-                  className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)"
-                >
-                  {coluna}
-                </span>
+              {COLUNAS.map((coluna) => (
+                <ColunaOrdenavel
+                  key={coluna.rotulo}
+                  rotulo={coluna.rotulo}
+                  campo={coluna.campo}
+                  sort={sort}
+                  dir={dir}
+                  onOrdenar={ordenarPor}
+                  className="text-(--nos-text-muted)"
+                />
               ))}
 
             </div>
 
-            {ordensFiltradas.length === 0 && (
+            {ordens.length === 0 && (
               <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
                 {busca
                   ? 'Nenhuma ordem de serviço encontrada para essa busca'
@@ -205,10 +177,7 @@ export default function OrdemDeServicoPage() {
               </div>
             )}
 
-            {ordensFiltradas.map((ordem, indice) => {
-              const veiculo = veiculosPorId[ordem.veiculoId]
-              const cliente = veiculo ? clientesPorId[veiculo.clienteId] : null
-
+            {ordens.map((ordem, indice) => {
               return (
                 <div
                   key={ordem.id}
@@ -218,12 +187,12 @@ export default function OrdemDeServicoPage() {
                       : undefined
                   }
                   className={[
-                    'grid grid-cols-[80px_1fr_1fr_2fr_140px_110px_150px]',
+                    'grid grid-cols-[80px_1fr_1fr_110px_140px_110px_150px]',
                     'items-center px-4 py-3',
                     ordem.ativo
                       ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
                       : 'cursor-default',
-                    indice !== ordensFiltradas.length - 1
+                    indice !== ordens.length - 1
                       ? 'border-b border-(--nos-border)'
                       : '',
                     !ordem.ativo ? 'opacity-40' : '',
@@ -235,15 +204,15 @@ export default function OrdemDeServicoPage() {
                   </span>
 
                   <span className="truncate pr-4 text-xs text-(--nos-text)">
-                    {cliente?.nome || '—'}
+                    {ordem.clienteNome || '—'}
                   </span>
 
                   <span className="truncate pr-4 text-xs text-(--nos-text-muted)">
-                    {veiculo ? formatarPlaca(veiculo.placa) : '—'}
+                    {formatarPlaca(ordem.placa)}
                   </span>
 
-                  <span className="truncate pr-4 text-xs text-(--nos-text-muted)">
-                    {ordem.descricaoProblema || '—'}
+                  <span className="text-xs text-(--nos-text-muted)">
+                    {formatarData(ordem.dataAbertura)}
                   </span>
 
                   <Badge status={statusOSParaPreset(ordem.status)} />
@@ -296,20 +265,14 @@ export default function OrdemDeServicoPage() {
 
         )}
 
-        {!carregando && !erro && ordensFiltradas.length > 0 && (
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
-
-            <span>
-              {ordensFiltradas.length} ordem(ns)
-            </span>
-
-            <span>
-              {ordensFiltradas.filter((o) => o.ativo).length} ativas
-              {' • '}
-              {ordensFiltradas.filter((o) => !o.ativo).length} inativas
-            </span>
-
-          </div>
+        {!carregando && !erro && totalItems > 0 && (
+          <Paginacao
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rotulo="ordem(ns)"
+            onMudar={irParaPagina}
+          />
         )}
 
       </div>

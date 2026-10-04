@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import ColunaOrdenavel from '@/components/ui/ColunaOrdenavel'
+import Paginacao from '@/components/ui/Paginacao'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
@@ -10,47 +12,48 @@ import ServicoModal from '../components/ServicoModal'
 
 import { servicoService } from '../services/servicoService'
 
+import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarMoeda } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
 
+const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
+
+const COLUNAS = [
+  { rotulo: '// ID' },
+  { rotulo: '// NOME', campo: 'nome' },
+  { rotulo: '// DESCRIÇÃO' },
+  { rotulo: '// VALOR', campo: 'valor' },
+  { rotulo: '// STATUS' },
+  { rotulo: '// AÇÕES' },
+]
+
 export default function ServicoPage() {
 
-  const [servicos, setServicos] = useState([])
-  const [busca, setBusca] = useState('')
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
+  const {
+    itens: servicos,
+    totalItems,
+    totalPages,
+    page,
+    sort,
+    dir,
+    busca,
+    setBusca,
+    ordenarPor,
+    irParaPagina,
+    carregando,
+    atualizando,
+    erro,
+    recarregar: carregar,
+  } = useListaPaginada({
+    buscar: servicoService.listarPaginado,
+    ordenacaoPadrao: ORDENACAO_PADRAO,
+  })
+
   const [modalAberto, setModalAberto] = useState(false)
   const [servicoEdicao, setServicoEdicao] = useState(null)
   const [confirmacao, setConfirmacao] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
-
-  async function carregar() {
-    setCarregando(true)
-    setErro(null)
-    try {
-      const resposta =
-        await servicoService.listar()
-
-      setServicos(
-        Array.isArray(resposta)
-          ? resposta
-          : []
-      )
-
-    } catch {
-      setErro(
-        'Falha ao carregar serviços.'
-      )
-
-    } finally {
-      setCarregando(false)
-    }
-  }
-
-  useEffect(() => {
-    carregar()
-  }, [])
 
   function abrirCriacao() {
     setServicoEdicao(null)
@@ -98,10 +101,6 @@ export default function ServicoPage() {
     }
   }
 
-  const servicosFiltrados = servicos.filter((servico) =>
-    servico.nome?.toLowerCase()?.includes(busca.trim().toLowerCase())
-  )
-
   return (
 
     <div className="min-h-screen bg-(--nos-bg) font-mono text-(--nos-text)">
@@ -135,7 +134,7 @@ export default function ServicoPage() {
           <SearchInput
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome..."
+            placeholder="Buscar por nome ou descrição..."
           />
         </div>
 
@@ -176,31 +175,30 @@ export default function ServicoPage() {
 
         {!carregando && !erro && (
 
-          <div className="border border-(--nos-border)">
+          <div className={[
+            'border border-(--nos-border) transition-opacity',
+            atualizando ? 'opacity-60' : '',
+          ].join(' ')}>
 
             <div className="grid grid-cols-[80px_1fr_2fr_120px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
-              {[
-                '// ID',
-                '// NOME',
-                '// DESCRIÇÃO',
-                '// VALOR',
-                '// STATUS',
-                '// AÇÕES'
-              ].map(coluna => (
+              {COLUNAS.map((coluna) => (
 
-                <span
-                  key={coluna}
-                  className="text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)"
-                >
-                  {coluna}
-                </span>
+                <ColunaOrdenavel
+                  key={coluna.rotulo}
+                  rotulo={coluna.rotulo}
+                  campo={coluna.campo}
+                  sort={sort}
+                  dir={dir}
+                  onOrdenar={ordenarPor}
+                  className="text-(--nos-text-muted)"
+                />
 
               ))}
 
             </div>
 
-            {servicosFiltrados.length === 0 && (
+            {servicos.length === 0 && (
 
               <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
 
@@ -212,7 +210,7 @@ export default function ServicoPage() {
 
             )}
 
-            {servicosFiltrados.map((servico, index) => (
+            {servicos.map((servico, index) => (
 
               <div
                 key={servico.id}
@@ -220,7 +218,7 @@ export default function ServicoPage() {
                   'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
                   'transition-colors hover:bg-(--nos-surface-2)',
-                  index !== servicosFiltrados.length - 1
+                  index !== servicos.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
                   !servico.ativo
@@ -300,33 +298,15 @@ export default function ServicoPage() {
 
         )}
 
-          {!carregando &&
-          !erro &&
-          servicosFiltrados.length > 0 && (
+        {!carregando && !erro && totalItems > 0 && (
 
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
-
-            <span>
-
-              {servicosFiltrados.length} serviço(s)
-
-            </span>
-
-            <span>
-
-              {servicosFiltrados.filter(
-                servico => servico.ativo
-              ).length} ativos
-
-              {' • '}
-
-              {servicosFiltrados.filter(
-                servico => !servico.ativo
-              ).length} inativos
-
-            </span>
-
-          </div>
+          <Paginacao
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rotulo="serviço(s)"
+            onMudar={irParaPagina}
+          />
 
         )}
 

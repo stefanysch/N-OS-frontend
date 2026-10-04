@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import ColunaOrdenavel from '@/components/ui/ColunaOrdenavel'
+import Paginacao from '@/components/ui/Paginacao'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
@@ -10,52 +12,50 @@ import ModalErro from '@/components/shared/ModalErro'
 import VeiculoModal from '../components/VeiculoModal'
 
 import { veiculoService } from '../services/veiculoService'
-import { clienteService } from '@/features/clientes/services/clienteService'
+import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarPlaca } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+
+const ORDENACAO_PADRAO = { sort: 'placa', dir: 'asc' }
+
+const COLUNAS = [
+  { rotulo: '// ID' },
+  { rotulo: '// CLIENTE', campo: 'cliente' },
+  { rotulo: '// PLACA', campo: 'placa' },
+  { rotulo: '// MODELO', campo: 'modelo' },
+  { rotulo: '// ANO', campo: 'ano' },
+  { rotulo: '// STATUS' },
+  { rotulo: '// AÇÕES' },
+]
 
 export default function VeiculoPage() {
 
   const navigate = useNavigate()
 
-  const [veiculos, setVeiculos] = useState([])
-  const [clientesPorId, setClientesPorId] = useState({})
-  const [busca, setBusca] = useState('')
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
+  const {
+    itens: veiculos,
+    totalItems,
+    totalPages,
+    page,
+    sort,
+    dir,
+    busca,
+    setBusca,
+    ordenarPor,
+    irParaPagina,
+    carregando,
+    atualizando,
+    erro,
+    recarregar: carregar,
+  } = useListaPaginada({
+    buscar: veiculoService.listarPaginado,
+    ordenacaoPadrao: ORDENACAO_PADRAO,
+  })
+
   const [modalAberto, setModalAberto] = useState(false)
   const [confirmacaoStatus, setConfirmacaoStatus] = useState(null)
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
-
-  useEffect(() => {
-    carregar()
-  }, [])
-
-  async function carregar() {
-    setCarregando(true)
-    setErro(null)
-
-    try {
-      const [dadosVeiculos, dadosClientes] = await Promise.all([
-        veiculoService.listar(),
-        clienteService.listar(),
-      ])
-
-      setVeiculos(Array.isArray(dadosVeiculos) ? dadosVeiculos : [])
-
-      setClientesPorId(
-        Object.fromEntries(
-          (Array.isArray(dadosClientes) ? dadosClientes : [])
-            .map((cliente) => [cliente.id, cliente])
-        )
-      )
-    } catch {
-      setErro('Falha ao carregar veículos.')
-    } finally {
-      setCarregando(false)
-    }
-  }
 
   function abrirCriacao() {
     setModalAberto(true)
@@ -94,17 +94,6 @@ export default function VeiculoPage() {
     }
   }
 
-  const buscaNormalizada = busca.trim().toLowerCase()
-
-  const veiculosFiltrados = veiculos.filter((veiculo) => {
-    const nomeCliente = clientesPorId[veiculo.clienteId]?.nome ?? ''
-
-    return (
-      veiculo.placa?.toLowerCase()?.includes(buscaNormalizada) ||
-      nomeCliente.toLowerCase().includes(buscaNormalizada)
-    )
-  })
-
   return (
     <div className="min-h-screen bg-(--nos-bg) font-data text-(--nos-text)">
 
@@ -135,7 +124,7 @@ export default function VeiculoPage() {
           <SearchInput
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por placa ou cliente..."
+            placeholder="Buscar por placa, modelo ou cliente..."
           />
         </div>
 
@@ -169,30 +158,28 @@ export default function VeiculoPage() {
         )}
 
         {!carregando && !erro && (
-          <div className="border border-(--nos-border)">
+          <div className={[
+            'border border-(--nos-border) transition-opacity',
+            atualizando ? 'opacity-60' : '',
+          ].join(' ')}>
 
             <div className="grid grid-cols-[80px_1fr_120px_1fr_80px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
 
-              {[
-                '// ID',
-                '// CLIENTE',
-                '// PLACA',
-                '// MODELO',
-                '// ANO',
-                '// STATUS',
-                '// AÇÕES',
-              ].map((coluna) => (
-                <span
-                  key={coluna}
-                  className="font-ui text-[10px] uppercase tracking-[0.15em] text-(--nos-text-faint)"
-                >
-                  {coluna}
-                </span>
+              {COLUNAS.map((coluna) => (
+                <ColunaOrdenavel
+                  key={coluna.rotulo}
+                  rotulo={coluna.rotulo}
+                  campo={coluna.campo}
+                  sort={sort}
+                  dir={dir}
+                  onOrdenar={ordenarPor}
+                  className="font-ui text-(--nos-text-faint)"
+                />
               ))}
 
             </div>
 
-            {veiculosFiltrados.length === 0 && (
+            {veiculos.length === 0 && (
               <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
                 {busca
                   ? 'Nenhum veículo encontrado para essa busca'
@@ -200,7 +187,7 @@ export default function VeiculoPage() {
               </div>
             )}
 
-            {veiculosFiltrados.map((veiculo, indice) => (
+            {veiculos.map((veiculo, indice) => (
               <div
                 key={veiculo.id}
                 onClick={veiculo.ativo ? () => abrirDetalhe(veiculo) : undefined}
@@ -210,7 +197,7 @@ export default function VeiculoPage() {
                   veiculo.ativo
                     ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
                     : 'cursor-default',
-                  indice !== veiculosFiltrados.length - 1
+                  indice !== veiculos.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
                   !veiculo.ativo ? 'opacity-40' : '',
@@ -224,7 +211,7 @@ export default function VeiculoPage() {
                 <div className="pr-4">
 
                   <span className="block truncate text-xs text-(--nos-text)">
-                    {clientesPorId[veiculo.clienteId]?.nome || '—'}
+                    {veiculo.clienteNome || '—'}
                   </span>
 
                   <span className="text-[10px] text-(--nos-text-muted)">
@@ -251,11 +238,9 @@ export default function VeiculoPage() {
 
                 </div>
 
-                {veiculo.ano && (
-                  <span className="text-xs text-(--nos-text-muted)">
-                    {veiculo.ano}
-                  </span>
-                )}
+                <span className="text-xs text-(--nos-text-muted)">
+                  {veiculo.ano || '—'}
+                </span>
 
                 <Badge
                   status={
@@ -293,20 +278,14 @@ export default function VeiculoPage() {
           </div>
         )}
 
-        {!carregando && !erro && veiculosFiltrados.length > 0 && (
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
-
-            <span>
-              {veiculosFiltrados.length} veículo(s)
-            </span>
-
-            <span>
-              {veiculosFiltrados.filter((v) => v.ativo).length} ativos
-              {' • '}
-              {veiculosFiltrados.filter((v) => !v.ativo).length} inativos
-            </span>
-
-          </div>
+        {!carregando && !erro && totalItems > 0 && (
+          <Paginacao
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rotulo="veículo(s)"
+            onMudar={irParaPagina}
+          />
         )}
 
       </div>

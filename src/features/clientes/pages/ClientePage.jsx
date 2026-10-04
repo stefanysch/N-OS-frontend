@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import ColunaOrdenavel from '@/components/ui/ColunaOrdenavel'
+import Paginacao from '@/components/ui/Paginacao'
 import SearchInput from '@/components/ui/SearchInput'
 import ModalConfirmacao from '@/components/shared/ModalConfirmacao'
 import ModalErro from '@/components/shared/ModalErro'
@@ -11,17 +13,45 @@ import ClienteModal from '../components/ClienteModal'
 import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
 
 import { clienteService } from '../services/clienteService'
+import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarDocumento, formatarTelefone } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+
+const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
+
+const COLUNAS = [
+  { rotulo: '// ID' },
+  { rotulo: '// NOME', campo: 'nome' },
+  { rotulo: '// TELEFONE' },
+  { rotulo: '// DOCUMENTO' },
+  { rotulo: '// VEÍCULOS' },
+  { rotulo: '// STATUS' },
+  { rotulo: '// AÇÕES' },
+]
 
 export default function ClientePage() {
 
   const navigate = useNavigate()
 
-  const [clientes, setClientes] = useState([])
-  const [busca, setBusca] = useState('')
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
+  const {
+    itens: clientes,
+    totalItems,
+    totalPages,
+    page,
+    sort,
+    dir,
+    busca,
+    setBusca,
+    ordenarPor,
+    irParaPagina,
+    carregando,
+    atualizando,
+    erro,
+    recarregar: carregar,
+  } = useListaPaginada({
+    buscar: clienteService.listarPaginado,
+    ordenacaoPadrao: ORDENACAO_PADRAO,
+  })
 
   // ─── modal cliente (criação) ──────────────────────────────────────────────
   const [modalClienteAberto, setModalClienteAberto] = useState(false)
@@ -35,24 +65,6 @@ export default function ClientePage() {
   const [alterandoStatus, setAlterandoStatus] = useState(false)
   const [erroAcao, setErroAcao] = useState(null)
 
-  useEffect(() => {
-    carregar()
-  }, [])
-
-  async function carregar() {
-    setCarregando(true)
-    setErro(null)
-
-    try {
-      const dados = await clienteService.listar()
-      setClientes(Array.isArray(dados) ? dados : [])
-    } catch {
-      setErro('Falha ao carregar clientes.')
-    } finally {
-      setCarregando(false)
-    }
-  }
-
   // abre modal de criação — fluxo wizard
   function abrirCriacao() {
     setModalClienteAberto(true)
@@ -60,6 +72,10 @@ export default function ClientePage() {
 
   function abrirDetalhe(cliente) {
     navigate(`/clientes/${cliente.id}`)
+  }
+
+  function abrirVeiculos(cliente) {
+    navigate(`/clientes/${cliente.id}?aba=veiculos`)
   }
 
   // passo 1 concluído: cliente criado → abre modal de veículo
@@ -104,10 +120,6 @@ export default function ClientePage() {
     }
   }
 
-  const clientesFiltrados = clientes.filter((cliente) =>
-    cliente.nome?.toLowerCase()?.includes(busca.trim().toLowerCase())
-  )
-
   return (
     <div className="min-h-screen bg-(--nos-bg) font-data text-(--nos-text)">
 
@@ -133,7 +145,7 @@ export default function ClientePage() {
           <SearchInput
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome..."
+            placeholder="Buscar por nome, documento, telefone ou e-mail..."
           />
         </div>
 
@@ -162,27 +174,26 @@ export default function ClientePage() {
         )}
 
         {!carregando && !erro && (
-          <div className="border border-(--nos-border)">
+          <div className={[
+            'border border-(--nos-border) transition-opacity',
+            atualizando ? 'opacity-60' : '',
+          ].join(' ')}>
 
-            <div className="grid grid-cols-[80px_1fr_140px_180px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
-              {[
-                '// ID',
-                '// NOME',
-                '// TELEFONE',
-                '// DOCUMENTO',
-                '// STATUS',
-                '// AÇÕES'
-              ].map((col) => (
-                <span
-                  key={col}
-                  className="font-ui text-[10px] uppercase tracking-[0.15em] text-(--nos-text-faint)"
-                >
-                  {col}
-                </span>
+            <div className="grid grid-cols-[80px_1fr_140px_180px_100px_100px_150px] border-b border-(--nos-border) bg-(--nos-surface) px-4 py-3">
+              {COLUNAS.map((coluna) => (
+                <ColunaOrdenavel
+                  key={coluna.rotulo}
+                  rotulo={coluna.rotulo}
+                  campo={coluna.campo}
+                  sort={sort}
+                  dir={dir}
+                  onOrdenar={ordenarPor}
+                  className="font-ui text-(--nos-text-faint)"
+                />
               ))}
             </div>
 
-            {clientesFiltrados.length === 0 && (
+            {clientes.length === 0 && (
               <div className="py-12 text-center text-xs uppercase tracking-widest text-(--nos-text-faint)">
                 {busca
                   ? 'Nenhum cliente encontrado para essa busca'
@@ -190,17 +201,17 @@ export default function ClientePage() {
               </div>
             )}
 
-            {clientesFiltrados.map((cliente, indice) => (
+            {clientes.map((cliente, indice) => (
               <div
                 key={cliente.id}
                 onClick={cliente.ativo ? () => abrirDetalhe(cliente) : undefined}
                 className={[
-                  'grid grid-cols-[80px_1fr_140px_180px_100px_150px]',
+                  'grid grid-cols-[80px_1fr_140px_180px_100px_100px_150px]',
                   'items-center px-4 py-3',
                   cliente.ativo
                     ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
                     : 'cursor-default',
-                  indice !== clientesFiltrados.length - 1
+                  indice !== clientes.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
                   !cliente.ativo ? 'opacity-40' : '',
@@ -232,6 +243,23 @@ export default function ClientePage() {
                   {formatarDocumento(cliente.documento)}
                 </span>
 
+                {cliente.ativo && cliente.quantidadeVeiculos > 0 ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      abrirVeiculos(cliente)
+                    }}
+                    className="w-fit text-left text-xs text-(--nos-text) underline decoration-(--nos-border-2) underline-offset-4 transition-colors hover:text-(--nos-red) hover:decoration-(--nos-red)"
+                  >
+                    {cliente.quantidadeVeiculos}
+                  </button>
+                ) : (
+                  <span className="text-xs text-(--nos-text-muted)">
+                    {cliente.quantidadeVeiculos}
+                  </span>
+                )}
+
                 <Badge status={cliente.ativo ? 'ativo' : 'inativo'} />
 
                 <div
@@ -258,18 +286,14 @@ export default function ClientePage() {
           </div>
         )}
 
-        {!carregando && !erro && clientesFiltrados.length > 0 && (
-          <div className="mt-3 flex justify-between text-[10px] uppercase tracking-widest text-(--nos-text-faint)">
-            <span>
-              {clientesFiltrados.length} cliente(s)
-            </span>
-
-            <span>
-              {clientesFiltrados.filter((c) => c.ativo).length} ativos
-              {' • '}
-              {clientesFiltrados.filter((c) => !c.ativo).length} inativos
-            </span>
-          </div>
+        {!carregando && !erro && totalItems > 0 && (
+          <Paginacao
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rotulo="cliente(s)"
+            onMudar={irParaPagina}
+          />
         )}
 
       </div>

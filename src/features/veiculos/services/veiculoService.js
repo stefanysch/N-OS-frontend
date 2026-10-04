@@ -5,6 +5,11 @@ async function listar() {
   return resposta.data
 }
 
+async function listarPaginado(params) {
+  const resposta = await api.get('/veiculos/paginado', { params })
+  return resposta.data
+}
+
 async function listarPorCliente(clienteId) {
   const resposta = await api.get(`/veiculos/cliente/${clienteId}`)
   return resposta.data
@@ -37,6 +42,7 @@ async function reativar(id) {
 
 export const veiculoService = {
   listar,
+  listarPaginado,
   listarPorCliente,
   buscarPorId,
   criar,

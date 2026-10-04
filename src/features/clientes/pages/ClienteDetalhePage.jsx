@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
@@ -39,12 +39,17 @@ const ABAS = [
 export default function ClienteDetalhePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const [cliente, setCliente] = useState(null)
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState(null)
 
-  const [abaAtiva, setAbaAtiva] = useState('dados')
+  const [abaAtiva, setAbaAtiva] = useState(() => {
+    const aba = searchParams.get('aba')
+
+    return ABAS.some((item) => item.id === aba) ? aba : 'dados'
+  })
 
   // ─── aba dados ────────────────────────────────────────────────────────────
   const [formulario, setFormulario] = useState(CLIENTE_FORMULARIO_VAZIO)
