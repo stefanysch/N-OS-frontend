@@ -38,8 +38,3 @@ coverage/
 
 # cache
 .cache/
-
-# arquivos de lock opcionais
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
