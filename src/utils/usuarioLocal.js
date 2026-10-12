@@ -24,6 +24,7 @@ export function removerUsuarioLocal() {
   try {
     localStorage.removeItem(CHAVE)
   } catch {
+    // localStorage indisponível
   }
 }
 

@@ -34,8 +34,8 @@ export default function LoginPage() {
     try {
       const resposta = await authService.login({ email, senha })
 
-      localStorage.setItem('nos-token', resposta.token)
-
+      // o token já foi gravado pela API em cookies HttpOnly; aqui fica só o
+      // que a interface exibe (nome no cabeçalho)
       salvarUsuarioLocal({
         id: resposta.usuarioId,
         nome: resposta.nome,

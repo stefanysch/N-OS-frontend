@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 
 import LogoSvg from '@/assets/n-os.svg'
+import { authService } from '@/features/auth/services/authService'
 import {
   aoAtualizarUsuarioLocal,
   lerUsuarioLocal,
@@ -162,9 +163,10 @@ export default function Header() {
 
   }
 
-  function logout() {
+  async function logout() {
 
-    localStorage.removeItem('nos-token')
+    // revoga a sessão no servidor e apaga os cookies
+    await authService.logout()
     removerUsuarioLocal()
 
     setMenuPerfilAberto(false)

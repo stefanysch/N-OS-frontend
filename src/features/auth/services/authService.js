@@ -5,6 +5,14 @@ async function login(credenciais) {
   return resposta.data
 }
 
+async function logout() {
+  try {
+    await api.post('/auth/logout')
+  } catch {
+    // sem rede ou API fora do ar
+  }
+}
+
 async function registrar(dados) {
   const resposta = await api.post('/auth/registrar', dados)
   return resposta.data
@@ -12,5 +20,6 @@ async function registrar(dados) {
 
 export const authService = {
   login,
+  logout,
   registrar,
 }
