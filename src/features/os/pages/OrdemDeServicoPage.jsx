@@ -190,7 +190,7 @@ export default function OrdemDeServicoPage() {
                     'grid grid-cols-[80px_1fr_1fr_110px_140px_110px_150px]',
                     'items-center px-4 py-3',
                     ordem.ativo
-                      ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
+                      ? 'cursor-pointer hover:bg-(--nos-surface-2)'
                       : 'cursor-default',
                     indice !== ordens.length - 1
                       ? 'border-b border-(--nos-border)'

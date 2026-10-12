@@ -13,6 +13,7 @@ import ClienteModal from '../components/ClienteModal'
 import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
 
 import { clienteService } from '../services/clienteService'
+import { montarConfirmacaoStatusCliente } from '../utils/confirmacaoStatus'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarDocumento, formatarTelefone } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
@@ -91,14 +92,18 @@ export default function ClientePage() {
     navigate('/ordens/nova', { state: { cliente, veiculo } })
   }
 
-  function abrirConfirmacao(cliente) {
-    setConfirmacaoStatus({
-      id: cliente.id,
-      ativo: cliente.ativo,
-      mensagem: cliente.ativo
-        ? `Deseja inativar "${cliente.nome}"?`
-        : `Deseja reativar "${cliente.nome}"?`
-    })
+  async function abrirConfirmacao(cliente) {
+    try {
+      // a listagem só traz a quantidade; os veículos vêm do detalhe do cliente
+      const detalhe = await clienteService.buscarPorId(cliente.id)
+
+      setConfirmacaoStatus({
+        id: cliente.id,
+        ...montarConfirmacaoStatusCliente(cliente, detalhe.veiculos ?? []),
+      })
+    } catch {
+      setErroAcao('Não foi possível carregar os veículos do cliente.')
+    }
   }
 
   async function confirmarAlteracaoStatus() {
@@ -209,7 +214,7 @@ export default function ClientePage() {
                   'grid grid-cols-[80px_1fr_140px_180px_100px_100px_150px]',
                   'items-center px-4 py-3',
                   cliente.ativo
-                    ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
+                    ? 'cursor-pointer hover:bg-(--nos-surface-2)'
                     : 'cursor-default',
                   indice !== clientes.length - 1
                     ? 'border-b border-(--nos-border)'
@@ -319,6 +324,8 @@ export default function ClientePage() {
       <ModalConfirmacao
         aberto={Boolean(confirmacaoStatus)}
         mensagem={confirmacaoStatus?.mensagem}
+        tituloItens={confirmacaoStatus?.tituloItens}
+        itens={confirmacaoStatus?.itens}
         carregando={alterandoStatus}
         onConfirmar={confirmarAlteracaoStatus}
         onCancelar={() => setConfirmacaoStatus(null)}

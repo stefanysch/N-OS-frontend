@@ -195,7 +195,7 @@ export default function VeiculoPage() {
                   'grid grid-cols-[80px_1fr_120px_1fr_80px_100px_150px]',
                   'items-center px-4 py-3',
                   veiculo.ativo
-                    ? 'cursor-pointer transition-colors hover:bg-(--nos-surface-2)'
+                    ? 'cursor-pointer hover:bg-(--nos-surface-2)'
                     : 'cursor-default',
                   indice !== veiculos.length - 1
                     ? 'border-b border-(--nos-border)'

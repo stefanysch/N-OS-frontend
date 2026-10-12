@@ -11,6 +11,8 @@ import ClienteCampos from '../components/ClienteCampos'
 import VeiculoModal from '@/features/veiculos/components/VeiculoModal'
 
 import { clienteService } from '../services/clienteService'
+import { veiculoService } from '@/features/veiculos/services/veiculoService'
+import { montarConfirmacaoStatusCliente } from '../utils/confirmacaoStatus'
 import { ordemDeServicoService } from '@/features/os/services/ordemDeServicoService'
 
 import { statusOSParaPreset } from '@/utils/statusOS'
@@ -154,10 +156,19 @@ export default function ClienteDetalhePage() {
 
   function abrirConfirmacao() {
     setConfirmacaoStatus({
-      ativo: cliente.ativo,
-      mensagem: cliente.ativo
-        ? `Deseja inativar "${cliente.nome}"?`
-        : `Deseja reativar "${cliente.nome}"?`,
+      alvo: 'cliente',
+      ...montarConfirmacaoStatusCliente(cliente, cliente.veiculos),
+    })
+  }
+
+  function abrirConfirmacaoVeiculo(veiculo) {
+    setConfirmacaoStatus({
+      alvo: 'veiculo',
+      id: veiculo.id,
+      ativo: veiculo.ativo,
+      mensagem: veiculo.ativo
+        ? `Deseja inativar "${veiculo.modelo} ${formatarPlaca(veiculo.placa)}"?`
+        : `Deseja reativar "${veiculo.modelo} ${formatarPlaca(veiculo.placa)}"?`,
     })
   }
 
@@ -165,7 +176,13 @@ export default function ClienteDetalhePage() {
     setAlterandoStatus(true)
 
     try {
-      if (cliente.ativo) {
+      if (confirmacaoStatus.alvo === 'veiculo') {
+        if (confirmacaoStatus.ativo) {
+          await veiculoService.inativar(confirmacaoStatus.id)
+        } else {
+          await veiculoService.reativar(confirmacaoStatus.id)
+        }
+      } else if (cliente.ativo) {
         await clienteService.inativar(id)
       } else {
         await clienteService.reativar(id)
@@ -174,7 +191,7 @@ export default function ClienteDetalhePage() {
       await carregar()
     } catch (erro) {
       setErroAcao(
-        obterMensagemErro(erro?.response?.data, 'Erro ao alterar status do cliente.')
+        obterMensagemErro(erro?.response?.data, 'Erro ao alterar status.')
       )
     } finally {
       setAlterandoStatus(false)
@@ -322,30 +339,53 @@ export default function ClienteDetalhePage() {
               </div>
             ) : (
               cliente.veiculos.map((veiculo, indice) => (
-                <button
+                <div
                   key={veiculo.id}
-                  type="button"
-                  onClick={() => navigate(`/veiculos/${veiculo.id}`)}
                   className={[
-                    'flex w-full items-center justify-between px-4 py-3 text-left',
+                    'flex w-full items-center justify-between',
                     'transition-colors hover:bg-(--nos-surface-2)',
-                    !veiculo.ativo ? 'opacity-40' : '',
                     indice !== cliente.veiculos.length - 1
                       ? 'border-b border-(--nos-border)'
                       : '',
                   ].join(' ')}
                 >
-                  <div>
-                    <p className="text-xs text-(--nos-text)">
-                      {formatarPlaca(veiculo.placa)}
-                    </p>
-                    <p className="text-[10px] text-(--nos-text-muted)">
-                      {formatarVeiculo(veiculo)}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/veiculos/${veiculo.id}`)}
+                    className={[
+                      'flex flex-1 items-center justify-between px-4 py-3 text-left',
+                      !veiculo.ativo ? 'opacity-40' : '',
+                    ].join(' ')}
+                  >
+                    <div>
+                      <p className="text-xs text-(--nos-text)">
+                        {formatarPlaca(veiculo.placa)}
+                      </p>
+                      <p className="text-[10px] text-(--nos-text-muted)">
+                        {formatarVeiculo(veiculo)}
+                      </p>
+                    </div>
 
-                  <Badge status={veiculo.ativo ? 'ativo' : 'inativo'} />
-                </button>
+                    <Badge status={veiculo.ativo ? 'ativo' : 'inativo'} />
+                  </button>
+
+                  {/* veículo só pode ser reativado com o cliente ativo (regra do backend) */}
+                  {(veiculo.ativo || cliente.ativo) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className={[
+                        'mr-3',
+                        veiculo.ativo
+                          ? 'hover:!text-(--nos-red)'
+                          : 'hover:!text-(--nos-success)',
+                      ].join(' ')}
+                      onClick={() => abrirConfirmacaoVeiculo(veiculo)}
+                    >
+                      {veiculo.ativo ? 'Inativar' : 'Reativar'}
+                    </Button>
+                  )}
+                </div>
               ))
             )}
 
@@ -438,6 +478,8 @@ export default function ClienteDetalhePage() {
       <ModalConfirmacao
         aberto={Boolean(confirmacaoStatus)}
         mensagem={confirmacaoStatus?.mensagem}
+        tituloItens={confirmacaoStatus?.tituloItens}
+        itens={confirmacaoStatus?.itens}
         carregando={alterandoStatus}
         onConfirmar={confirmarAlteracaoStatus}
         onCancelar={() => setConfirmacaoStatus(null)}

@@ -217,7 +217,7 @@ export default function ServicoPage() {
                 className={[
                   'grid grid-cols-[80px_1fr_2fr_120px_100px_150px]',
                   'items-center px-4 py-3',
-                  'transition-colors hover:bg-(--nos-surface-2)',
+                  'hover:bg-(--nos-surface-2)',
                   index !== servicos.length - 1
                     ? 'border-b border-(--nos-border)'
                     : '',
