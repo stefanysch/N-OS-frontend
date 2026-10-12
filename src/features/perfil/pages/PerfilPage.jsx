@@ -5,7 +5,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
 import { perfilService } from '../services/perfilService'
-import { salvarUsuarioLocal } from '@/utils/usuarioLocal'
+import { authService } from '@/features/auth/services/authService'
+import { removerUsuarioLocal, salvarUsuarioLocal } from '@/utils/usuarioLocal'
 import { obterMensagemErro } from '@/utils/erros'
 import { emailValido } from '@/utils/validators'
 
@@ -15,7 +16,8 @@ export default function PerfilPage() {
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState(null)
 
-  const [dados, setDados] = useState({ nome: '', email: '' })
+  const [dados, setDados] = useState({ nome: '', email: '', senhaAtual: '' })
+  const [emailSalvo, setEmailSalvo] = useState('')
   const [errosDados, setErrosDados] = useState({})
   const [mensagemErroDados, setMensagemErroDados] = useState(null)
   const [mensagemSucessoDados, setMensagemSucessoDados] = useState(null)
@@ -42,13 +44,16 @@ export default function PerfilPage() {
     try {
       const perfil = await perfilService.obter()
 
-      setDados({ nome: perfil.nome, email: perfil.email })
+      setDados({ nome: perfil.nome, email: perfil.email, senhaAtual: '' })
+      setEmailSalvo(perfil.email)
     } catch {
       setErroCarregamento('Falha ao carregar seu perfil.')
     } finally {
       setCarregando(false)
     }
   }
+
+  const mudouEmail = dados.email.trim().toLowerCase() !== emailSalvo.toLowerCase()
 
   function alterarDados(e) {
     const { name, value } = e.target
@@ -68,6 +73,10 @@ export default function PerfilPage() {
     if (!dados.nome.trim()) erros.nome = 'O nome é obrigatório.'
     if (!dados.email.trim()) erros.email = 'O e-mail é obrigatório.'
     else if (!emailValido(dados.email)) erros.email = 'E-mail inválido.'
+
+    if (mudouEmail && !dados.senhaAtual) {
+      erros.senhaAtual = 'Informe sua senha atual para trocar o e-mail.'
+    }
 
     return erros
   }
@@ -90,6 +99,7 @@ export default function PerfilPage() {
       const atualizado = await perfilService.atualizar({
         nome: dados.nome.trim(),
         email: dados.email.trim(),
+        senhaAtual: mudouEmail ? dados.senhaAtual : undefined,
       })
 
       salvarUsuarioLocal({
@@ -98,6 +108,8 @@ export default function PerfilPage() {
         email: atualizado.email,
       })
 
+      setDados((anterior) => ({ ...anterior, email: atualizado.email, senhaAtual: '' }))
+      setEmailSalvo(atualizado.email)
       setMensagemSucessoDados('Dados salvos com sucesso.')
     } catch (erro) {
       setMensagemErroDados(
@@ -127,8 +139,14 @@ export default function PerfilPage() {
 
     if (!senha.novaSenha) {
       erros.novaSenha = 'Informe a nova senha.'
-    } else if (senha.novaSenha.length < 6) {
-      erros.novaSenha = 'A nova senha deve ter no mínimo 6 caracteres.'
+    } else if (senha.novaSenha.length < 8) {
+      erros.novaSenha = 'A nova senha deve ter no mínimo 8 caracteres.'
+    } else if (new TextEncoder().encode(senha.novaSenha).length > 72) {
+      erros.novaSenha = 'A nova senha deve ter no máximo 72 caracteres.'
+    } else if (!/\p{L}/u.test(senha.novaSenha) || !/\d/.test(senha.novaSenha)) {
+      erros.novaSenha = 'A nova senha deve conter ao menos uma letra e um número.'
+    } else if (senha.novaSenha === senha.senhaAtual) {
+      erros.novaSenha = 'A nova senha deve ser diferente da atual.'
     }
 
     if (senha.confirmarSenha !== senha.novaSenha) {
@@ -159,7 +177,14 @@ export default function PerfilPage() {
       })
 
       setSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
-      setMensagemSucessoSenha('Senha alterada com sucesso.')
+      // o servidor invalida todos os tokens ao trocar a senha: reabre a sessão
+      setMensagemSucessoSenha('Senha alterada. Faça login novamente.')
+
+      setTimeout(async () => {
+        await authService.logout()
+        removerUsuarioLocal()
+        navigate('/login')
+      }, 1500)
     } catch (erro) {
       setMensagemErroSenha(
         obterMensagemErro(erro?.response?.data, 'Erro ao alterar a senha.')
@@ -237,6 +262,19 @@ export default function PerfilPage() {
                     error={errosDados.email}
                     required
                   />
+
+                  {mudouEmail && (
+                    <Input
+                      label="// SENHA ATUAL (PARA TROCAR O E-MAIL)"
+                      name="senhaAtual"
+                      type="password"
+                      autoComplete="current-password"
+                      value={dados.senhaAtual}
+                      onChange={alterarDados}
+                      error={errosDados.senhaAtual}
+                      required
+                    />
+                  )}
                 </div>
 
                 {mensagemErroDados && (
