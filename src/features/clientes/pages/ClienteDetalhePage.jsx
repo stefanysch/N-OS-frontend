@@ -26,6 +26,7 @@ import {
   obterIniciais,
 } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 import {
   CLIENTE_FORMULARIO_VAZIO,
   montarFormularioCliente,
@@ -179,13 +180,17 @@ export default function ClienteDetalhePage() {
       if (confirmacaoStatus.alvo === 'veiculo') {
         if (confirmacaoStatus.ativo) {
           await veiculoService.inativar(confirmacaoStatus.id)
+          notificarSucesso('Veículo inativado com sucesso.')
         } else {
           await veiculoService.reativar(confirmacaoStatus.id)
+          notificarSucesso('Veículo reativado com sucesso.')
         }
       } else if (cliente.ativo) {
         await clienteService.inativar(id)
+        notificarSucesso('Cliente inativado com sucesso.')
       } else {
         await clienteService.reativar(id)
+        notificarSucesso('Cliente reativado com sucesso.')
       }
 
       await carregar()

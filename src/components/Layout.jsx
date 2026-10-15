@@ -9,6 +9,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Header           from '@/components/ui/Header'
 import SidebarCadastros from '@/components/ui/SidebarCadastros'
+import ModalSucesso from '@/components/shared/ModalSucesso'
 
 // prefixos que ativam a sidebar de cadastros
 const CADASTROS_PREFIXOS = ['/clientes', '/veiculos', '/pecas', '/servicos']
@@ -30,6 +31,8 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      <ModalSucesso />
     </div>
   )
 }

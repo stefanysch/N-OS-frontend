@@ -8,6 +8,7 @@ import ClienteCampos from './ClienteCampos'
 
 import { clienteService } from '../services/clienteService'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 import {
   CLIENTE_FORMULARIO_VAZIO,
@@ -60,7 +61,8 @@ export default function ClienteModal({
       if (onAvancar) {
         onAvancar(clienteCriado)
       } else {
-        onSucesso()
+        notificarSucesso('Cliente cadastrado com sucesso.')
+        onSucesso(clienteCriado)
         onFechar()
       }
     } catch (erro) {

@@ -23,6 +23,7 @@ import {
   formatarVeiculo,
 } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 import {
   VEICULO_FORMULARIO_VAZIO,
   validarVeiculo,
@@ -162,8 +163,10 @@ export default function VeiculoDetalhePage() {
     try {
       if (veiculo.ativo) {
         await veiculoService.inativar(id)
+        notificarSucesso('Veículo inativado com sucesso.')
       } else {
         await veiculoService.reativar(id)
+        notificarSucesso('Veículo reativado com sucesso.')
       }
 
       await carregar()

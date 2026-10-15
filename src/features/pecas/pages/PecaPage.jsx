@@ -15,6 +15,7 @@ import { pecaService } from '../services/pecaService'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarMoeda } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
 
@@ -87,11 +88,15 @@ export default function PecaPage() {
           confirmacaoStatus.id
         )
 
+        notificarSucesso('Peça inativada com sucesso.')
+
       } else {
 
         await pecaService.reativar(
           confirmacaoStatus.id
         )
+
+        notificarSucesso('Peça reativada com sucesso.')
 
       }
 

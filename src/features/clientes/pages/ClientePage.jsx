@@ -17,6 +17,7 @@ import { montarConfirmacaoStatusCliente } from '../utils/confirmacaoStatus'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarDocumento, formatarTelefone } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
 
@@ -112,8 +113,10 @@ export default function ClientePage() {
     try {
       if (confirmacaoStatus.ativo) {
         await clienteService.inativar(confirmacaoStatus.id)
+        notificarSucesso('Cliente inativado com sucesso.')
       } else {
         await clienteService.reativar(confirmacaoStatus.id)
+        notificarSucesso('Cliente reativado com sucesso.')
       }
 
       await carregar()

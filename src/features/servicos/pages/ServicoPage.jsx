@@ -15,6 +15,7 @@ import { servicoService } from '../services/servicoService'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarMoeda } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 const ORDENACAO_PADRAO = { sort: 'nome', dir: 'asc' }
 
@@ -84,10 +85,14 @@ export default function ServicoPage() {
           confirmacao.id
         )
 
+        notificarSucesso('Serviço inativado com sucesso.')
+
       } else {
         await servicoService.reativar(
           confirmacao.id
         )
+
+        notificarSucesso('Serviço reativado com sucesso.')
 
       }
       await carregar()

@@ -15,6 +15,7 @@ import { ordemDeServicoService } from '../services/ordemDeServicoService'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarData, formatarMoeda, formatarPlaca } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 const ORDENACAO_PADRAO = { sort: 'dataAbertura', dir: 'desc' }
 
@@ -71,8 +72,10 @@ export default function OrdemDeServicoPage() {
     try {
       if (confirmacaoStatus.ativo) {
         await ordemDeServicoService.inativar(confirmacaoStatus.id)
+        notificarSucesso('Ordem de serviço inativada com sucesso.')
       } else {
         await ordemDeServicoService.reativar(confirmacaoStatus.id)
+        notificarSucesso('Ordem de serviço reativada com sucesso.')
       }
 
       await carregar()

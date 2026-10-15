@@ -9,6 +9,7 @@ import VeiculoCampos from './VeiculoCampos'
 import { veiculoService } from '../services/veiculoService'
 import { clienteService } from '@/features/clientes/services/clienteService'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 import {
   VEICULO_FORMULARIO_VAZIO,
@@ -90,7 +91,8 @@ export default function VeiculoModal({
           veiculo: veiculoCriado,
         })
       } else {
-        onSucesso()
+        notificarSucesso('Veículo cadastrado com sucesso.')
+        onSucesso(veiculoCriado)
         onFechar()
       }
     } catch (erro) {

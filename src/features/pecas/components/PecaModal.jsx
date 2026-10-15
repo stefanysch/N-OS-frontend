@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 
 import { pecaService } from '../services/pecaService'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 import {
   PECA_FORMULARIO_VAZIO as FORMULARIO_VAZIO,
@@ -82,6 +83,8 @@ export default function PecaModal({
       } else {
         await pecaService.criar(payload)
       }
+
+      if (!editando) notificarSucesso('Peça cadastrada com sucesso.')
 
       onSucesso()
       onFechar()

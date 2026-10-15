@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 
 import { servicoService } from '../services/servicoService'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 import {
   SERVICO_FORMULARIO_VAZIO as FORMULARIO_VAZIO,
@@ -84,6 +85,8 @@ export default function ServicoModal({
       } else {
         await servicoService.criar(payload)
       }
+
+      if (!editando) notificarSucesso('Serviço cadastrado com sucesso.')
 
       onSucesso()
       onFechar()

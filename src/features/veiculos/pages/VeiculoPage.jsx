@@ -15,6 +15,7 @@ import { veiculoService } from '../services/veiculoService'
 import { useListaPaginada } from '@/hooks/useListaPaginada'
 import { formatarPlaca } from '@/utils/formatters'
 import { obterMensagemErro } from '@/utils/erros'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 const ORDENACAO_PADRAO = { sort: 'placa', dir: 'asc' }
 
@@ -81,8 +82,10 @@ export default function VeiculoPage() {
     try {
       if (confirmacaoStatus.ativo) {
         await veiculoService.inativar(confirmacaoStatus.id)
+        notificarSucesso('Veículo inativado com sucesso.')
       } else {
         await veiculoService.reativar(confirmacaoStatus.id)
+        notificarSucesso('Veículo reativado com sucesso.')
       }
 
       await carregar()
