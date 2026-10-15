@@ -161,6 +161,11 @@ export default function ImprimirOrdemDeServicoPage() {
             <p className="text-[10px] uppercase tracking-widest text-gray-500">
               Abertura: {formatarData(ordem.dataAbertura)}
             </p>
+            {ordem.dataConclusao && (
+              <p className="text-[10px] uppercase tracking-widest text-gray-500">
+                Conclusão: {formatarData(ordem.dataConclusao)}
+              </p>
+            )}
             <p className="text-[10px] uppercase tracking-widest text-gray-500">
               Status: {status.label}
             </p>

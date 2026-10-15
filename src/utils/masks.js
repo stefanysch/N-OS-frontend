@@ -75,3 +75,12 @@ export function aplicarMaskPlaca(valor) {
 export function aplicarMaskCEP(valor) {
   return aplicarPadrao(valor, '#####-###')
 }
+
+export function aplicarMaskDecimal(valor) {
+  const limpo = String(valor ?? '').replace(',', '.').replace(/[^\d.]/g, '')
+  const [inteiro, ...resto] = limpo.split('.')
+
+  if (resto.length === 0) return inteiro
+
+  return `${inteiro}.${resto.join('').slice(0, 2)}`
+}

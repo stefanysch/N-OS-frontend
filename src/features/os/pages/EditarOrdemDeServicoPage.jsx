@@ -20,6 +20,7 @@ import {
 } from '../validations/ordemDeServicoValidation'
 
 import { STATUS_OS, obterStatus } from '@/utils/statusOS'
+import { aplicarMaskDecimal } from '@/utils/masks'
 
 import {
   calcularSubtotal,
@@ -27,7 +28,7 @@ import {
   formatarMoeda,
 } from '../utils/ordemDeServico'
 
-import { formatarPlaca } from '@/utils/formatters'
+import { formatarData, formatarPlaca } from '@/utils/formatters'
 
 function nomeItemExistente(item) {
   return item.pecaNome ?? item.servicoNome ?? '—'
@@ -45,6 +46,7 @@ export default function EditarOrdemDeServicoPage() {
   const [pecas, setPecas] = useState([])
   const [servicos, setServicos] = useState([])
 
+  const [dataConclusao, setDataConclusao] = useState(null)
   const [statusOriginal, setStatusOriginal] = useState(0)
   const [status, setStatus] = useState(0)
   const [descricaoProblema, setDescricaoProblema] = useState('')
@@ -97,6 +99,7 @@ export default function EditarOrdemDeServicoPage() {
       setPecas(Array.isArray(dadosPecas) ? dadosPecas.filter((p) => p.ativo) : [])
       setServicos(Array.isArray(dadosServicos) ? dadosServicos.filter((s) => s.ativo) : [])
 
+      setDataConclusao(ordem.dataConclusao ?? null)
       setStatusOriginal(ordem.status)
       setStatus(ordem.status)
       setDescricaoProblema(ordem.descricaoProblema ?? '')
@@ -394,6 +397,15 @@ export default function EditarOrdemDeServicoPage() {
 
                   </div>
 
+                  {dataConclusao && (
+                    <p className="mt-2 text-[10px] uppercase tracking-[0.15em] text-(--nos-text-muted)">
+                      // CONCLUÍDA EM{' '}
+                      <span className="text-(--nos-text)">
+                        {formatarData(dataConclusao)}
+                      </span>
+                    </p>
+                  )}
+
                 </div>
 
               </div>
@@ -687,11 +699,10 @@ export default function EditarOrdemDeServicoPage() {
                       <span className="px-3 text-xs text-(--nos-text-muted)">R$</span>
 
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={desconto}
-                        onChange={(e) => setDesconto(e.target.value)}
+                        onChange={(e) => setDesconto(aplicarMaskDecimal(e.target.value))}
                         placeholder="0,00"
                         className="w-full bg-transparent px-2 py-2 font-mono text-xs text-(--nos-text) placeholder-(--nos-text-faint) focus:outline-none"
                       />

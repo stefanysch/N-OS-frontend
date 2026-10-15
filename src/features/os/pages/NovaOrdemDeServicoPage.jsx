@@ -23,6 +23,8 @@ import {
 import { formatarVeiculo } from '@/utils/formatters'
 import { STATUS_OS, obterStatus } from '@/utils/statusOS'
 import { obterMensagemErro } from '@/utils/erros'
+import { aplicarMaskDecimal } from '@/utils/masks'
+import { notificarSucesso } from '@/utils/notificacoes'
 
 import {
   ITEM_VAZIO,
@@ -358,6 +360,8 @@ export default function NovaOrdemDeServicoPage() {
       await ordemDeServicoService.criar(
         payload
       )
+
+      notificarSucesso('Ordem de serviço cadastrada com sucesso.')
 
       navigate('/ordens')
     } catch (erro) {
@@ -1045,13 +1049,12 @@ export default function NovaOrdemDeServicoPage() {
                       </span>
 
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={desconto}
                         onChange={(e) =>
                           setDesconto(
-                            e.target.value
+                            aplicarMaskDecimal(e.target.value)
                           )
                         }
                         placeholder="0,00"
